@@ -601,6 +601,21 @@
                                 </div>
                             </div>
 
+                            <!-- Sub-filter & Options Bar -->
+                            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap" id="monthlyDueSubFilters">
+                                        <!-- Rendered dynamically by JavaScript -->
+                                    </div>
+                                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                                        <input class="form-check-input" type="checkbox" id="monthlyDueIncludePastSwitch" onchange="window.toggleMonthlyDueIncludePast(this.checked)" style="cursor: pointer; width: 2.2em; height: 1.2em;">
+                                        <label class="form-check-label fw-bold small text-secondary" for="monthlyDueIncludePastSwitch" style="cursor: pointer;">
+                                            <i class="fi fi-rr-time-past text-danger me-1"></i> រួមបញ្ចូលសិស្សជំពាក់កន្លងមក (Include Past Debts)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Monthly Students Table -->
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
                                 <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
@@ -1265,11 +1280,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 bg-white p-3 justify-content-between">
-                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">បោះបង់</button>
-                    <button type="button" class="btn rounded-pill px-4 text-white fw-bold shadow-sm" style="background-color: #8a0e5b;" onclick="generateMonthlyDuePDF()">
-                        <i class="fi fi-rr-file-pdf me-2"></i>ទាញយករបាយការណ៍ (Download PDF)
-                    </button>
+                <div class="modal-footer border-0 bg-white p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-3 fw-bold" data-bs-dismiss="modal">បិទ</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="const m = $('#dueMonthSelect').val(); const y = $('#dueYearSelect').val(); bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab(m, y);">
+                            <i class="fi fi-rr-table me-1"></i>មើលក្នុងតារាង (View Table)
+                        </button>
+                        <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-bold shadow-sm" onclick="const m = $('#dueMonthSelect').val(); const y = $('#dueYearSelect').val(); window.exportMonthlyDueExcel(m, y);">
+                            <i class="fi fi-rr-file-excel me-1"></i>Excel
+                        </button>
+                        <button type="button" class="btn rounded-pill px-4 text-white fw-bold shadow-sm" style="background-color: #8a0e5b;" onclick="const m = $('#dueMonthSelect').val(); const y = $('#dueYearSelect').val(); window.generateMonthlyDuePDF(m, y);">
+                            <i class="fi fi-rr-file-pdf me-2"></i>ទាញយក PDF
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

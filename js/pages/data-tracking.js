@@ -409,10 +409,21 @@ const animateValue = (element, start, end, duration) => {
 const getDateObject = (dateStr) => {
     if (!dateStr || ['មិនមាន', 'N/A', '', 'Completed', '01-01-100', 'undefined', 'null'].includes(dateStr)) return null;
 
-    // First, try direct JS Date parsing (for ISO strings or YYYY-MM-DD)
-    const dTest = new Date(dateStr);
-    if (!isNaN(dTest.getTime()) && (String(dateStr).includes('T') || String(dateStr).match(/^\d{4}-\d{2}-\d{2}$/))) {
-        return dTest;
+    if (dateStr instanceof Date) {
+        return isNaN(dateStr.getTime()) ? null : dateStr;
+    }
+
+    // Direct ISO / YYYY-MM-DD parsing in local time (noon) to avoid any UTC timezone boundary shifts
+    const str = String(dateStr).trim();
+    const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+    if (isoMatch) {
+        const y = parseInt(isoMatch[1]);
+        const m = parseInt(isoMatch[2]) - 1;
+        const d = parseInt(isoMatch[3]);
+        if (m >= 0 && m < 12 && d >= 1 && d <= 31) {
+            const dt = new Date(y, m, d, 12, 0, 0);
+            return isNaN(dt.getTime()) ? null : dt;
+        }
     }
 
     const engDate = convertToEnglishDate(dateStr);
@@ -440,10 +451,9 @@ const getDateObject = (dateStr) => {
             else year += 1900;
         }
 
-        // Use local time for constructors to avoid timezone issues
-        const dateObj = new Date(year, month, day);
-        dateObj.setHours(12, 0, 0, 0); // Noon to avoid boundary issues
-        return dateObj;
+        // Use local time at noon to completely prevent day/month flips
+        const dateObj = new Date(year, month, day, 12, 0, 0);
+        return isNaN(dateObj.getTime()) ? null : dateObj;
     }
     return null;
 };
@@ -1105,27 +1115,18 @@ const getPaymentStatus = (student) => {
     }
 
     let daysDiff = 0;
-    const nextDate = student.nextPaymentDate;
+    const nextDate = student.nextPaymentDate || student.paymentDueDate;
     let hasValidDate = false;
 
-    if (nextDate && !['មិនមាន', ''].includes(nextDate)) {
-        const engDate = convertToEnglishDate(nextDate);
-        if (engDate) {
-            const parts = engDate.split('/');
-            const nextDueDate = new Date(parts[2], parts[0] - 1, parts[1]);
+    if (nextDate && !['មិនមាន', '', 'n/a'].includes(String(nextDate).toLowerCase().trim())) {
+        const nextDueDate = getDateObject(nextDate);
+        if (nextDueDate && !isNaN(nextDueDate.getTime())) {
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(12, 0, 0, 0);
+            nextDueDate.setHours(12, 0, 0, 0);
 
-            if (!isNaN(nextDueDate.getTime())) {
-                hasValidDate = true;
-                daysDiff = Math.ceil((nextDueDate - today) / (1000 * 60 * 60 * 24));
-
-                if (nextDueDate.getDate() === today.getDate() &&
-                    nextDueDate.getMonth() === today.getMonth() &&
-                    nextDueDate.getFullYear() === today.getFullYear()) {
-                    daysDiff = 0;
-                }
-            }
+            hasValidDate = true;
+            daysDiff = Math.round((nextDueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         }
     }
 
@@ -1164,18 +1165,25 @@ const KHMER_MONTHS = ["មករា", "កុម្ភៈ", "មីនា", "ម
 
 
 const convertToEnglishDate = (dateStr) => {
-    if (!dateStr || ['មិនមាន', 'N/A', '', 'undefined', 'null'].includes(dateStr)) return null;
+    if (!dateStr || ['មិនមាន', 'N/A', '', 'undefined', 'null', 'Completed', '01-01-100'].includes(dateStr)) return null;
 
-    if (typeof dateStr !== 'string') return null;
+    if (typeof dateStr !== 'string' && typeof dateStr !== 'number') return null;
 
-    // Standardize input
-    let cleanStr = dateStr.replace(/ថ្ងៃទី|កាលបរិច្ឆេទ|ថ្ងៃ|ខែ|ឆ្នាំ/g, ' ').replace(/\s+/g, ' ').trim();
+    // Standardize input: convert Khmer digits (០-៩) to Arabic digits (0-9) and strip words
+    let cleanStr = String(dateStr)
+        .replace(/[០-៩]/g, d => '០១២៣៤៥៦៧៨៩'.indexOf(d))
+        .replace(/ថ្ងៃទី|កាលបរិច្ឆេទ|ថ្ងៃ|ខែ|ឆ្នាំ/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
-    // A. Check for standard ISO or YYYY-MM-DD
-    if (cleanStr.match(/^\d{4}-\d{2}-\d{2}/)) {
-        const d = new Date(cleanStr);
-        if (!isNaN(d.getTime())) {
-            return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    // A. Check for standard ISO YYYY-MM-DD or YYYY/MM/DD directly
+    const isoMatch = cleanStr.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+    if (isoMatch) {
+        const y = parseInt(isoMatch[1]);
+        const m = parseInt(isoMatch[2]);
+        const d = parseInt(isoMatch[3]);
+        if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+            return `${m}/${d}/${y}`;
         }
     }
 
@@ -1191,8 +1199,6 @@ const convertToEnglishDate = (dateStr) => {
 
     // Try finding month in parts[1] (Standard DD-MM-YYYY or DD-MMM-YYYY)
     let mIdx = -1;
-
-    // Check Part 1 (Middle)
     mIdx = KHMER_MONTHS_LOCAL.findIndex(m => parts[1].includes(m));
     if (mIdx === -1) {
         mIdx = ENG_MONTHS_LOCAL.findIndex(m => parts[1].toLowerCase().includes(m.toLowerCase()));
@@ -1214,14 +1220,44 @@ const convertToEnglishDate = (dateStr) => {
             day = parseInt(parts[1]);
             year = parseInt(parts[2]);
         } else {
-            // Numeric fallback (DD-MM-YYYY)
-            day = parseInt(parts[0]);
-            month = parseInt(parts[1]);
-            year = parseInt(parts[2]);
+            const p0 = parseInt(parts[0]);
+            const p1 = parseInt(parts[1]);
+            const p2 = parseInt(parts[2]);
+
+            if (p0 > 1000) {
+                // Format: YYYY-MM-DD or YYYY/MM/DD
+                year = p0;
+                month = p1;
+                day = p2;
+            } else if (p2 > 1000 || p2 > 20) {
+                year = p2;
+                if (p0 > 12 && p1 <= 12) {
+                    day = p0;
+                    month = p1;
+                } else if (p0 <= 12 && p1 > 12) {
+                    month = p0;
+                    day = p1;
+                } else {
+                    // Standard Cambodian DD/MM/YYYY
+                    day = p0;
+                    month = p1;
+                }
+            } else {
+                day = p0;
+                month = p1;
+                year = p2;
+            }
         }
     }
 
     if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
+    if (year < 100) {
+        year += (year <= 40 ? 2000 : 1900);
+    } else if (year >= 100 && year < 1000) {
+        if (year === 100) year = 2100;
+        else year += 1900;
+    }
 
     return `${month}/${day}/${year}`;
 };
@@ -12762,219 +12798,12 @@ margin: 0;
         modal.show();
     };
 
-    window.generateMonthlyDuePDF = async () => {
-        const month = parseInt($('#monthlyDueMonthSelect').val() || $('#dueMonthSelect').val() || (new Date().getMonth() + 1));
-        const year = parseInt($('#monthlyDueYearSelect').val() || $('#dueYearSelect').val() || new Date().getFullYear());
-        if (!month || !year) return;
-
-        const modalEl = document.getElementById('monthlyDueModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if (modalInstance) modalInstance.hide();
+    window.generateMonthlyDuePDF = async (targetMonth, targetYear) => {
+        const month = targetMonth || parseInt($('#monthlyDueMonthSelect').val() || $('#dueMonthSelect').val() || (new Date().getMonth() + 1));
+        const year = targetYear || parseInt($('#monthlyDueYearSelect').val() || $('#dueYearSelect').val() || new Date().getFullYear());
+        if (typeof window.executeMonthlyDuePDF === 'function') {
+            return window.executeMonthlyDuePDF(month, year);
         }
-
-        let filtered = rawStudentsArray.filter(s => {
-            if ((s.enrollmentStatus || '').toLowerCase() === 'dropout') return false;
-            
-            const statusObj = getPaymentStatus(s);
-            const validStatuses = ['today', 'overdue', 'warning'];
-            if (!validStatuses.includes(statusObj.status)) return false;
-
-            if (!s.nextPaymentDate) return false;
-            
-            let dateObj = getDateObject(s.nextPaymentDate);
-            if (!dateObj) return false;
-
-            return (dateObj.getMonth() + 1) === month && dateObj.getFullYear() === year;
-        });
-
-        const khmerMonthsNames = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
-        if (filtered.length === 0) {
-            return showAlert(`គ្មានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${khmerMonthsNames[month - 1]} ឆ្នាំ ${year} ទេ!`, 'info');
-        }
-
-        // Categorize by Status (Today, Overdue, Warning)
-        const todayStudents = filtered.filter(s => getPaymentStatus(s).status === 'today').sort((a,b)=> (parseInt(a.displayId)||0) - (parseInt(b.displayId)||0));
-        const overdueStudents = filtered.filter(s => getPaymentStatus(s).status === 'overdue').sort((a,b)=> (parseInt(a.displayId)||0) - (parseInt(b.displayId)||0));
-        const warningStudents = filtered.filter(s => getPaymentStatus(s).status === 'warning').sort((a,b)=> (parseInt(a.displayId)||0) - (parseInt(b.displayId)||0));
-
-        const todayAmount = todayStudents.reduce((sum, s) => sum + calculateRemainingAmount(s), 0);
-        const overdueAmount = overdueStudents.reduce((sum, s) => sum + calculateRemainingAmount(s), 0);
-        const warningAmount = warningStudents.reduce((sum, s) => sum + calculateRemainingAmount(s), 0);
-
-        let totalAmount = todayAmount + overdueAmount + warningAmount;
-        let totalCount = filtered.length;
-
-        const monthName = khmerMonthsNames[month - 1] || $('#dueMonthSelect option:selected').text();
-        const title = `របាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ (Monthly Due Report)`;
-        const subtitle = `សម្រាប់ខែ៖ ${monthName} ឆ្នាំ ${year}`;
-
-        const getSectionName = (s) => {
-            if (isStudentChineseFullTime(s)) return 'ចិនពេញម៉ោង';
-            if (isStudentPartTime(s)) return 'ក្រៅម៉ោង';
-            return 'ចំណះដឹងទូទៅ';
-        };
-
-        const generateTableRows = (students) => {
-            if(students.length === 0) return `<tr><td colspan="10" class="text-center text-muted">គ្មានទិន្នន័យ (No Data)</td></tr>`;
-            let rows = '';
-            let sectionTotal = 0;
-            students.forEach((s, index) => {
-                const remaining = calculateRemainingAmount(s);
-                sectionTotal += remaining;
-                const statusObj = getPaymentStatus(s);
-                rows += `
-                    <tr>
-<td>${index + 1}</td>
-<td>${s.displayId || '-'}</td>
-<td class="text-left">${s.lastName || ''} ${s.firstName || ''}</td>
-<td>${getSectionName(s)}</td>
-<td>${s.studyLevel || ''}</td>
-<td>${s.studyTime || ''}</td>
-<td>${s.teacherName || s.homeroomTeacher || '-'}</td>
-<td>${convertToKhmerWordDate(s.nextPaymentDate)}</td>
-<td style="color: ${statusObj.color}; font-weight: bold;">${statusObj.text}</td>
-<td class="text-right text-danger fw-bold">$${remaining.toFixed(2)}</td>
-                    </tr>`;
-            });
-            rows += `
-                <tr style="background-color: #f8f9fa;">
-                    <td colspan="9" class="text-right fw-bold">សរុបទឹកប្រាក់ត្រូវប្រមូល (Subtotal):</td>
-                    <td class="text-right fw-bold text-danger">$${sectionTotal.toFixed(2)}</td>
-                </tr>`;
-            return rows;
-        };
-
-        const getTableHeader = () => `
-            <thead>
-                <tr>
-                    <th width="4%">ល.រ</th>
-                    <th width="8%">អត្តលេខ</th>
-                    <th>ឈ្មោះសិស្ស</th>
-                    <th width="10%">ផ្នែក</th>
-                    <th width="10%">កម្រិត</th>
-                    <th width="12%">ម៉ោងសិក្សា</th>
-                    <th width="12%">គ្រូបន្ទុក</th>
-                    <th width="12%">ថ្ងៃត្រូវបង់</th>
-                    <th width="10%">ស្ថានភាព</th>
-                    <th width="8%">ទឹកប្រាក់</th>
-                </tr>
-            </thead>`;
-
-        const allSortedStudents = [...overdueStudents, ...todayStudents, ...warningStudents];
-        
-        let sectionsHtml = `
-            <table>
-                ${getTableHeader()}
-                <tbody>${generateTableRows(allSortedStudents)}</tbody>
-            </table>
-        `;
-
-        let win = window.open('', '_blank');
-        let html = `<html><head><title>${title}</title>
-            <style>
-                @page { size: landscape; margin: 10mm; }
-                @font-face {
-                    font-family: 'Khmer OS Battambang';
-                    src: url(data:font/truetype;charset=utf-8;base64,${typeof khmerFontBase64 !== 'undefined' ? khmerFontBase64 : ''}) format('truetype');
-                }
-                body { font-family: 'Khmer OS Battambang', sans-serif; padding: 20px; color: #333; line-height: 1.4; }
-                .header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px double #8a0e5b; }
-                .logo { width: 90px; height: 90px; object-fit: cover; border-radius: 50%; border: 2px solid #8a0e5b; padding: 2px; }
-                .school-info { flex: 1; text-align: left; }
-                .school-name h1 { margin: 0; color: #8a0e5b; font-size: 1.8rem; font-weight: 900; font-family: Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
-                .school-name h2 { margin: 5px 0 0; color: #333; font-size: 1.1rem; font-weight: bold; border-bottom: 2px solid #8a0e5b; display: inline-block; padding-bottom: 3px; font-family: 'Khmer OS Battambang', sans-serif; }
-                .report-title { text-align: right; flex: 1; }
-                .report-title h2 { margin: 0; color: #d63384; font-size: 1.6rem; font-family: 'Khmer OS Battambang', sans-serif; font-weight: bold; text-decoration: none; }
-                
-                .summary-cards { display: flex; gap: 20px; margin-bottom: 20px; }
-                .summary-card { flex: 1; background: #fff5f8; border: 1px solid #8a0e5b; padding: 15px; border-radius: 10px; text-align: center; }
-                .summary-card h3 { margin: 0; font-size: 1rem; color: #555; }
-                .summary-card .val { font-size: 1.5rem; font-weight: bold; color: #8a0e5b; margin-top: 5px; }
-                
-                .section-title { font-size: 1.2rem; font-weight: bold; color: white; background-color: #8a0e5b; padding: 10px 15px; border-radius: 8px 8px 0 0; margin-top: 20px; }
-                
-                table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-                th, td { border: 1px solid #999; padding: 8px 4px; text-align: center; vertical-align: middle; }
-                th { background-color: #8a0e5b; font-weight: bold; color: white; border: 1px solid #8a0e5b; }
-                .text-left { text-align: left !important; padding-left: 8px; }
-                .text-right { text-align: right !important; padding-right: 8px; }
-                .text-danger { color: #dc3545; }
-                .fw-bold { font-weight: bold; }
-                
-                .footer { margin-top: 50px; display: flex; justify-content: space-around; font-size: 0.95rem; page-break-inside: avoid; }
-                .signature-box { text-align: center; width: 220px; }
-                .signature-line { margin-top: 60px; border-top: 1px solid #333; width: 100%; }
-                
-                .no-print { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff0f6; padding: 12px 25px; border-radius: 10px; border: 1px solid #ff69b4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-                .btn { padding: 10px 30px; background: #8a0e5b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
-                
-                @media print {
-                    .no-print { display: none; }
-                    tr { break-inside: avoid; }
-                    thead { display: table-header-group; }
-                    th { -webkit-print-color-adjust: exact; background-color: #8a0e5b !important; color: white !important; border: 1px solid #8a0e5b !important; }
-                    .section-title { -webkit-print-color-adjust: exact; background-color: #8a0e5b !important; color: white !important; }
-                    .summary-card { -webkit-print-color-adjust: exact; background: #fff5f8 !important; border: 1px solid #8a0e5b !important; }
-                }
-            </style>
-        </head><body>
-            <div class="no-print">
-                <span class="fw-bold" style="color: #8a0e5b;"><i class="fi fi-rr-check-circle"></i> របាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ រៀបចំរួចរាល់សម្រាប់បោះពុម្ព ឬរក្សាទុកជា PDF</span>
-                <button class="btn" onclick="window.print()">បោះពុម្ព (Print)</button>
-            </div>
-            <div class="header">
-                <img src="img/1.jpg" class="logo" onerror="this.src='img/logo.jpg'">
-                <div class="school-info">
-                    <div class="school-name">
-<h1>TIAN XIN INTERNATIONAL SCHOOL</h1>
-<h2>សាលាអន្តរជាតិ ធានស៊ីន</h2>
-                    </div>
-                </div>
-                <div class="report-title">
-                    <h2>${title}</h2>
-                    ${subtitle ? `<div class="fw-bold" style="color: #444; margin-top: 5px; font-size: 0.95rem;">${subtitle}</div>` : ''}
-                    <div style="font-size: 0.85rem; margin-top: 5px; color: #666;">
-កាលបរិច្ឆេទ: ${new Date().toLocaleDateString('en-GB')}
-                    </div>
-                </div>
-            </div>
-            
-            ${sectionsHtml}
-
-            <div class="summary-cards" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px;">
-                <div class="summary-card" style="background: #fff5f8; border: 1px solid #dc3545; padding: 15px; border-radius: 10px; text-align: center;">
-                    <h3 style="margin: 0; font-size: 0.95rem; color: #dc3545; font-weight: bold;">សរុបហួសកំណត់ (Overdue)</h3>
-                    <div class="val" style="font-size: 1.25rem; font-weight: bold; color: #dc3545; margin-top: 8px;">${overdueStudents.length} នាក់<br>$${overdueAmount.toFixed(2)}</div>
-                </div>
-                <div class="summary-card" style="background: #f0f8ff; border: 1px solid #0d6efd; padding: 15px; border-radius: 10px; text-align: center;">
-                    <h3 style="margin: 0; font-size: 0.95rem; color: #0d6efd; font-weight: bold;">ត្រូវបង់ថ្ងៃនេះ (Today)</h3>
-                    <div class="val" style="font-size: 1.25rem; font-weight: bold; color: #0d6efd; margin-top: 8px;">${todayStudents.length} នាក់<br>$${todayAmount.toFixed(2)}</div>
-                </div>
-                <div class="summary-card" style="background: #fffdf5; border: 1px solid #ffc107; padding: 15px; border-radius: 10px; text-align: center;">
-                    <h3 style="margin: 0; font-size: 0.95rem; color: #d39e00; font-weight: bold;">ជិតដល់ថ្ងៃ (Warning)</h3>
-                    <div class="val" style="font-size: 1.25rem; font-weight: bold; color: #d39e00; margin-top: 8px;">${warningStudents.length} នាក់<br>$${warningAmount.toFixed(2)}</div>
-                </div>
-                <div class="summary-card" style="background: #f8f9fa; border: 1px solid #8a0e5b; padding: 15px; border-radius: 10px; text-align: center;">
-                    <h3 style="margin: 0; font-size: 0.95rem; color: #8a0e5b; font-weight: bold;">សរុបរួម (Total Due)</h3>
-                    <div class="val" style="font-size: 1.25rem; font-weight: bold; color: #8a0e5b; margin-top: 8px;">${totalCount} នាក់<br>$${totalAmount.toFixed(2)}</div>
-                </div>
-            </div>
-            
-            <div class="footer" style="display: flex; justify-content: space-between; padding: 0 40px;">
-                <div class="signature-box" style="width: 45%;">
-                    <div class="fw-bold">អ្នករៀបចំ (Prepared By)</div>
-                    <div class="signature-line"></div>
-                </div>
-                <div class="signature-box" style="width: 45%;">
-                    <div class="fw-bold">នាយកសាលា (Principal)</div>
-                    <div class="signature-line"></div>
-                </div>
-            </div>
-        </body></html>`;
-
-        win.document.write(html);
-        win.document.close();
     };
 
     /**
@@ -17327,10 +17156,219 @@ window.loadStudentAttendanceTab = async function(studentKey) {
 
 
 // =========================================================================
-// DEDICATED MONTHLY PAYMENT DUE REPORTING (សរុបបំណុល & ស្ថានភាពបង់ប្រាក់តាមខែ)
+// MASTER MONTHLY PAYMENT DUE REPORTING (សរុបបំណុល & ស្ថានភាពបង់ប្រាក់តាមខែ)
+// 100% ACCURATE DATE PARSING & AUDIT LOGIC
 // =========================================================================
 
-window.switchToMonthlyDueTab = function() {
+window.CURRENT_MONTHLY_DUE_FILTER = 'all';
+window.CURRENT_MONTHLY_INCLUDE_PAST = false;
+
+// 1. Helper: Resolve student effective due date & payment context
+window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) {
+    if (!student) return null;
+
+    // Filter out dropouts, graduated, or suspended students
+    const enStatus = (student.enrollmentStatus || '').toLowerCase().trim();
+    if (enStatus === 'dropout' || enStatus === 'graduated' || enStatus === 'suspended') {
+        return null;
+    }
+
+    // Must have unpaid remaining balance
+    const debt = calculateRemainingAmount(student);
+    if (debt <= 0) return null;
+
+    // Check delay / postponement
+    const pStatus = (student.paymentStatus || '').toLowerCase().trim();
+    const isDelay = pStatus === 'delay' || pStatus === 'postponed' || pStatus === 'ពន្យា' || pStatus === 'ពន្យារពេល';
+
+    let rawDate = student.nextPaymentDate || student.paymentDueDate;
+    if (isDelay && student.postponedDate && !['មិនមាន', 'n/a', ''].includes(String(student.postponedDate).toLowerCase().trim())) {
+        rawDate = student.postponedDate;
+    }
+
+    const dateObj = getDateObject(rawDate);
+    if (!dateObj) {
+        return null;
+    }
+
+    const dMonth = dateObj.getMonth() + 1;
+    const dYear = dateObj.getFullYear();
+
+    const isTargetMonth = (dMonth === targetMonth && dYear === targetYear);
+    const isPastMonth = (dYear < targetYear || (dYear === targetYear && dMonth < targetMonth));
+
+    // Calculate days remaining from today (noon)
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    const targetD = new Date(dateObj);
+    targetD.setHours(12, 0, 0, 0);
+    const daysDiff = Math.round((targetD.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Determine status badge & label
+    let status = 'scheduled';
+    let statusText = `📆 នៅសល់ ${daysDiff} ថ្ងៃ`;
+    let statusBadge = 'bg-info bg-opacity-25 text-dark border';
+    let statusColor = '#0284c7';
+
+    if (isDelay) {
+        status = 'delay';
+        statusText = '⏳ ពន្យារពេលបង់';
+        statusBadge = 'bg-secondary bg-opacity-25 text-dark border';
+        statusColor = '#64748b';
+    } else if (isPastMonth && daysDiff < 0) {
+        status = 'past_overdue';
+        statusText = `⚠️ ជំពាក់កន្លងមក (${Math.abs(daysDiff)} ថ្ងៃ)`;
+        statusBadge = 'bg-danger bg-opacity-15 text-danger border border-danger';
+        statusColor = '#dc3545';
+    } else if (daysDiff === 0) {
+        status = 'today';
+        statusText = '📅 ត្រូវបង់ថ្ងៃនេះ';
+        statusBadge = 'bg-primary text-white';
+        statusColor = '#0d6efd';
+    } else if (daysDiff < 0) {
+        status = 'overdue';
+        statusText = `❌ ហួសកំណត់ (${Math.abs(daysDiff)} ថ្ងៃ)`;
+        statusBadge = 'bg-danger text-white';
+        statusColor = '#dc3545';
+    } else if (daysDiff <= 10) {
+        status = 'warning';
+        statusText = `⏳ ជិតដល់ថ្ងៃ (${daysDiff} ថ្ងៃ)`;
+        statusBadge = 'bg-warning text-dark';
+        statusColor = '#d97706';
+    }
+
+    return {
+        student,
+        debt,
+        rawDate,
+        dateObj,
+        daysDiff,
+        dMonth,
+        dYear,
+        isDelay,
+        isTargetMonth,
+        isPastMonth,
+        status,
+        statusText,
+        statusBadge,
+        statusColor
+    };
+};
+
+// 2. Core: Extract students and KPI metrics for any month & year
+window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter = 'all', includePast = false) {
+    const allStudents = window.rawStudentsArray || [];
+    const currentD = new Date();
+    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || (currentD.getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || currentD.getFullYear());
+
+    // 12-month summary counts for quick pills
+    const monthCounts = Array(12).fill(0);
+    const monthAmounts = Array(12).fill(0);
+
+    const eligibleRecords = [];
+
+    allStudents.forEach(s => {
+        const ctx = window.getStudentMonthlyDueContext(s, month, year);
+        if (!ctx) return;
+
+        // 12-Month Pills count for the selected year
+        if (ctx.dYear === year && ctx.dMonth >= 1 && ctx.dMonth <= 12) {
+            monthCounts[ctx.dMonth - 1]++;
+            monthAmounts[ctx.dMonth - 1] += ctx.debt;
+        }
+
+        // Check if student belongs to this month or past overdue
+        if (ctx.isTargetMonth) {
+            eligibleRecords.push(ctx);
+        } else if (includePast && ctx.isPastMonth) {
+            eligibleRecords.push(ctx);
+        }
+    });
+
+    // Sub-counts for current view
+    const subCounts = {
+        all: eligibleRecords.length,
+        today: eligibleRecords.filter(r => r.status === 'today').length,
+        overdue: eligibleRecords.filter(r => r.status === 'overdue' || r.status === 'past_overdue').length,
+        warning: eligibleRecords.filter(r => r.status === 'warning').length,
+        scheduled: eligibleRecords.filter(r => r.status === 'scheduled').length,
+        delay: eligibleRecords.filter(r => r.status === 'delay').length
+    };
+
+    // Filter by active sub-filter
+    let filteredRecords = eligibleRecords;
+    if (subFilter === 'today') {
+        filteredRecords = eligibleRecords.filter(r => r.status === 'today');
+    } else if (subFilter === 'overdue') {
+        filteredRecords = eligibleRecords.filter(r => r.status === 'overdue' || r.status === 'past_overdue');
+    } else if (subFilter === 'warning') {
+        filteredRecords = eligibleRecords.filter(r => r.status === 'warning');
+    } else if (subFilter === 'scheduled') {
+        filteredRecords = eligibleRecords.filter(r => r.status === 'scheduled');
+    } else if (subFilter === 'delay') {
+        filteredRecords = eligibleRecords.filter(r => r.status === 'delay');
+    }
+
+    // Sort: Overdue first, Today second, Warning third, Scheduled fourth, Delay last
+    const statusPriority = { overdue: 1, past_overdue: 1, today: 2, warning: 3, scheduled: 4, delay: 5 };
+    filteredRecords.sort((a, b) => {
+        const pA = statusPriority[a.status] || 99;
+        const pB = statusPriority[b.status] || 99;
+        if (pA !== pB) return pA - pB;
+        if (a.dateObj && b.dateObj && a.dateObj.getTime() !== b.dateObj.getTime()) {
+            return a.dateObj.getTime() - b.dateObj.getTime();
+        }
+        return (parseInt(a.student.displayId) || 0) - (parseInt(b.student.displayId) || 0);
+    });
+
+    // KPI sums across eligible records for this month
+    let totalDueAmount = 0;
+    let todayAmount = 0;
+    let overdueAmount = 0;
+    let chineseFullCount = 0;
+    let partTimeCount = 0;
+    let trilingualCount = 0;
+
+    eligibleRecords.forEach(r => {
+        totalDueAmount += r.debt;
+        if (r.status === 'today') todayAmount += r.debt;
+        if (r.status === 'overdue' || r.status === 'past_overdue') overdueAmount += r.debt;
+
+        if (isStudentTrilingual(r.student)) trilingualCount++;
+        else if (isStudentChineseFullTime(r.student)) chineseFullCount++;
+        else partTimeCount++;
+    });
+
+    return {
+        month,
+        year,
+        subFilter,
+        includePast,
+        records: filteredRecords,
+        allEligible: eligibleRecords,
+        monthCounts,
+        monthAmounts,
+        subCounts,
+        kpis: {
+            totalCount: eligibleRecords.length,
+            totalDueAmount,
+            todayCount: subCounts.today,
+            todayAmount,
+            overdueCount: subCounts.overdue,
+            overdueAmount,
+            warningCount: subCounts.warning,
+            chineseFullCount,
+            partTimeCount,
+            trilingualCount
+        }
+    };
+};
+
+window.switchToMonthlyDueTab = function(targetMonth, targetYear) {
+    if (targetMonth) $('#monthlyDueMonthSelect').val(targetMonth);
+    if (targetYear) $('#monthlyDueYearSelect').val(targetYear);
+
     const tabEl = document.getElementById('monthly-due-tab');
     if (tabEl) {
         if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
@@ -17348,6 +17386,16 @@ window.switchToMonthlyDueTab = function() {
             view.style.display = 'block';
         }
     }
+    window.renderMonthlyDueSummary(targetMonth, targetYear);
+};
+
+window.setMonthlyDueSubFilter = function(filter) {
+    window.CURRENT_MONTHLY_DUE_FILTER = filter || 'all';
+    window.renderMonthlyDueSummary();
+};
+
+window.toggleMonthlyDueIncludePast = function(checked) {
+    window.CURRENT_MONTHLY_INCLUDE_PAST = !!checked;
     window.renderMonthlyDueSummary();
 };
 
@@ -17369,37 +17417,15 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
     const titleEl = document.getElementById('monthlyDueTableTitle');
     if (titleEl) titleEl.innerText = `បញ្ជីរាយនាមសិស្សត្រូវបង់ប្រាក់ក្នុងខែ${khmerMonths[month - 1]} ឆ្នាំ ${year}`;
 
-    const allStudents = window.rawStudentsArray || [];
-    const activeStudents = allStudents.filter(s => {
-        const st = (s.enrollmentStatus || '').toLowerCase().trim();
-        return st !== 'dropout' && st !== 'graduated' && st !== 'suspended';
-    });
+    const data = window.getMonthlyDueStudentsData(month, year, window.CURRENT_MONTHLY_DUE_FILTER, window.CURRENT_MONTHLY_INCLUDE_PAST);
 
-    // 1. Calculate Monthly Counts for ALL 12 Months to populate Quick Navigation Pills!
-    const monthCounts = Array(12).fill(0);
-    const monthAmounts = Array(12).fill(0);
-
-    activeStudents.forEach(s => {
-        const debt = calculateRemainingAmount(s);
-        if (debt <= 0) return; // Only count students who owe payment
-
-        let dObj = getDateObject(s.nextPaymentDate);
-        if (dObj && dObj.getFullYear() === year) {
-            const mIdx = dObj.getMonth();
-            if (mIdx >= 0 && mIdx < 12) {
-                monthCounts[mIdx]++;
-                monthAmounts[mIdx] += debt;
-            }
-        }
-    });
-
-    // Render Quick Month Pills
+    // 1. Render 12 Quick Month Navigation Pills
     const pillsContainer = document.getElementById('monthlyDueQuickPills');
     if (pillsContainer) {
         pillsContainer.innerHTML = khmerMonths.map((mName, idx) => {
             const mNum = idx + 1;
             const isSelected = mNum === month;
-            const count = monthCounts[idx];
+            const count = data.monthCounts[idx];
             return `
                 <button type="button" class="btn btn-sm rounded-pill px-3 py-1 text-nowrap fw-bold ${isSelected ? 'btn-primary shadow-sm' : 'btn-white border text-dark'}" 
                     onclick="window.renderMonthlyDueSummary(${mNum}, ${year})" style="font-size: 0.82rem; transition: all 0.2s ease;">
@@ -17410,84 +17436,76 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
         }).join('');
     }
 
-    // 2. Filter Students specifically for the SELECTED Month & Year
-    const monthlyStudents = activeStudents.filter(s => {
-        const debt = calculateRemainingAmount(s);
-        if (debt <= 0) return false;
+    // 2. Render Sub-filter Buttons
+    const subFiltersContainer = document.getElementById('monthlyDueSubFilters');
+    if (subFiltersContainer) {
+        const sf = window.CURRENT_MONTHLY_DUE_FILTER;
+        const btnClass = (name) => sf === name ? 'btn btn-sm rounded-pill px-3 py-1 fw-bold btn-primary shadow-sm' : 'btn btn-sm rounded-pill px-3 py-1 fw-bold btn-white border text-secondary';
+        const badgeClass = (name) => sf === name ? 'badge bg-white text-primary ms-1' : 'badge bg-secondary bg-opacity-25 text-dark ms-1';
 
-        let dObj = getDateObject(s.nextPaymentDate);
-        if (!dObj) return false;
-        return (dObj.getMonth() + 1) === month && dObj.getFullYear() === year;
-    }).sort((a, b) => {
-        let da = getDateObject(a.nextPaymentDate) || 0;
-        let db = getDateObject(b.nextPaymentDate) || 0;
-        if (da !== db) return da - db;
-        return (parseInt(a.displayId) || 0) - (parseInt(b.displayId) || 0);
-    });
+        subFiltersContainer.innerHTML = `
+            <button type="button" class="${btnClass('all')}" onclick="window.setMonthlyDueSubFilter('all')">
+                ទាំងអស់ (All) <span class="${badgeClass('all')}">${data.subCounts.all}</span>
+            </button>
+            <button type="button" class="${btnClass('today')}" onclick="window.setMonthlyDueSubFilter('today')">
+                📅 ត្រូវបង់ថ្ងៃនេះ <span class="${sf === 'today' ? 'badge bg-white text-primary ms-1' : 'badge bg-info text-white ms-1'}">${data.subCounts.today}</span>
+            </button>
+            <button type="button" class="${btnClass('overdue')}" onclick="window.setMonthlyDueSubFilter('overdue')">
+                ❌ ហួសកំណត់ <span class="${sf === 'overdue' ? 'badge bg-white text-primary ms-1' : 'badge bg-danger text-white ms-1'}">${data.subCounts.overdue}</span>
+            </button>
+            <button type="button" class="${btnClass('warning')}" onclick="window.setMonthlyDueSubFilter('warning')">
+                ⏳ ជិតដល់ថ្ងៃ <span class="${sf === 'warning' ? 'badge bg-white text-primary ms-1' : 'badge bg-warning text-dark ms-1'}">${data.subCounts.warning}</span>
+            </button>
+            <button type="button" class="${btnClass('scheduled')}" onclick="window.setMonthlyDueSubFilter('scheduled')">
+                📆 បង់ធម្មតា <span class="${badgeClass('scheduled')}">${data.subCounts.scheduled}</span>
+            </button>
+            <button type="button" class="${btnClass('delay')}" onclick="window.setMonthlyDueSubFilter('delay')">
+                ⏸️ ពន្យារពេល <span class="${badgeClass('delay')}">${data.subCounts.delay}</span>
+            </button>
+        `;
+    }
 
-    // 3. KPI Calculations
-    let totalDueAmount = 0;
-    let todayCount = 0;
-    let todayAmount = 0;
-    let overdueCount = 0;
-    let overdueAmount = 0;
-    let chineseFullCount = 0;
-    let partTimeCount = 0;
+    // Sync switch state
+    const includePastSwitch = document.getElementById('monthlyDueIncludePastSwitch');
+    if (includePastSwitch) includePastSwitch.checked = window.CURRENT_MONTHLY_INCLUDE_PAST;
 
-    monthlyStudents.forEach(s => {
-        const debt = calculateRemainingAmount(s);
-        totalDueAmount += debt;
-        const stObj = getPaymentStatus(s);
-
-        if (stObj.status === 'today') {
-            todayCount++;
-            todayAmount += debt;
-        } else if (stObj.status === 'overdue') {
-            overdueCount++;
-            overdueAmount += debt;
-        }
-
-        if (isStudentChineseFullTime(s)) chineseFullCount++;
-        else partTimeCount++;
-    });
-
-    // Update KPI Elements
+    // 3. Update KPI Elements
     const totalCountEl = document.getElementById('monthlyDueTotalCount');
-    if (totalCountEl) totalCountEl.innerText = `${monthlyStudents.length} នាក់`;
+    if (totalCountEl) totalCountEl.innerText = `${data.kpis.totalCount} នាក់`;
 
     const tableBadgeEl = document.getElementById('monthlyDueTableBadge');
-    if (tableBadgeEl) tableBadgeEl.innerText = `${monthlyStudents.length} នាក់`;
+    if (tableBadgeEl) tableBadgeEl.innerText = `${data.records.length} នាក់`;
 
     const totalAmountEl = document.getElementById('monthlyDueTotalAmount');
-    if (totalAmountEl) totalAmountEl.innerText = `$${totalDueAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (totalAmountEl) totalAmountEl.innerText = `$${data.kpis.totalDueAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const todayCountEl = document.getElementById('monthlyDueTodayCount');
-    if (todayCountEl) todayCountEl.innerText = `${todayCount} នាក់`;
+    if (todayCountEl) todayCountEl.innerText = `${data.kpis.todayCount} នាក់`;
 
     const todayAmountEl = document.getElementById('monthlyDueTodayAmount');
-    if (todayAmountEl) todayAmountEl.innerText = `ទឹកប្រាក់: $${todayAmount.toFixed(2)}`;
+    if (todayAmountEl) todayAmountEl.innerText = `ទឹកប្រាក់: $${data.kpis.todayAmount.toFixed(2)}`;
 
     const overdueCountEl = document.getElementById('monthlyDueOverdueCount');
-    if (overdueCountEl) overdueCountEl.innerText = `${overdueCount} នាក់`;
+    if (overdueCountEl) overdueCountEl.innerText = `${data.kpis.overdueCount} នាក់`;
 
     const overdueAmountEl = document.getElementById('monthlyDueOverdueAmount');
-    if (overdueAmountEl) overdueAmountEl.innerText = `ទឹកប្រាក់: $${overdueAmount.toFixed(2)}`;
+    if (overdueAmountEl) overdueAmountEl.innerText = `ទឹកប្រាក់: $${data.kpis.overdueAmount.toFixed(2)}`;
 
     const subChineseEl = document.getElementById('monthlyDueSubChinese');
-    if (subChineseEl) subChineseEl.innerText = `ចិនពេញម៉ោង: ${chineseFullCount} | ក្រៅម៉ោង: ${partTimeCount}`;
+    if (subChineseEl) subChineseEl.innerText = `ចិនពេញម៉ោង: ${data.kpis.chineseFullCount} | ក្រៅម៉ោង: ${data.kpis.partTimeCount} | ចំណេះដឹងទូទៅ: ${data.kpis.trilingualCount}`;
 
-    // 4. Render Table
+    // 4. Render Table Body & Foot
     const tbody = document.getElementById('monthlyDueBody');
     const tfoot = document.getElementById('monthlyDueFoot');
     if (!tbody) return;
 
-    if (monthlyStudents.length === 0) {
+    if (data.records.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="11" class="py-5 text-center text-muted">
                     <i class="fi fi-rr-calendar-check fa-3x text-secondary mb-3 d-block opacity-50"></i>
-                    <h6 class="fw-bold">គ្មានសិស្សដែលត្រូវបង់ប្រាក់ក្នុងខែ${khmerMonths[month - 1]} ឆ្នាំ ${year} ទេ!</h6>
-                    <small>សូមជ្រើសរើសខែផ្សេង ឬពិនិត្យមើលកាលបរិច្ឆេទថ្ងៃត្រូវបង់របស់សិស្ស</small>
+                    <h6 class="fw-bold">គ្មានសិស្សដែលត្រូវបង់ប្រាក់ក្នុងលក្ខខណ្ឌជ្រើសរើសនេះទេ!</h6>
+                    <small>សូមជ្រើសរើសខែផ្សេង ឬប្តូរលក្ខខណ្ឌតម្រង (Filter) ខាងលើ</small>
                 </td>
             </tr>
         `;
@@ -17501,10 +17519,12 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
         return '<span class="badge bg-warning bg-opacity-10 text-dark border rounded-pill">ក្រៅម៉ោង</span>';
     };
 
-    tbody.innerHTML = monthlyStudents.map((s, idx) => {
-        const debt = calculateRemainingAmount(s);
-        const stObj = getPaymentStatus(s);
-        const khmerDueDate = convertToKhmerWordDate(s.nextPaymentDate);
+    let visibleTotalDebt = 0;
+
+    tbody.innerHTML = data.records.map((r, idx) => {
+        const s = r.student;
+        visibleTotalDebt += r.debt;
+        const formattedDate = convertToKhmerDate(r.dateObj) || r.rawDate;
         const teacher = s.teacherName || s.homeroomTeacher || '-';
 
         return `
@@ -17512,7 +17532,7 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
                 <td class="text-muted small">${idx + 1}</td>
                 <td><span class="badge bg-light text-dark border font-monospace">${s.displayId || '-'}</span></td>
                 <td class="text-start px-3">
-                    <div class="fw-bold text-dark">${s.lastName || ''} ${s.firstName || ''}</div>
+                    <div class="fw-bold text-dark mb-0">${s.lastName || ''} ${s.firstName || ''}</div>
                     <div class="small text-muted" style="font-size: 0.75rem;">${s.chineseLastName || ''}${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''}</div>
                 </td>
                 <td>${getSectionBadge(s)}</td>
@@ -17521,13 +17541,13 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
                 <td><small class="text-dark fw-semibold"><i class="fi fi-rr-chalkboard-user me-1 text-muted"></i>${teacher}</small></td>
                 <td>
                     <span class="fw-bold text-dark" style="font-size: 0.85rem;">
-                        <i class="fi fi-rr-calendar me-1 text-primary"></i>${khmerDueDate}
+                        <i class="fi fi-rr-calendar me-1 text-primary"></i>${formattedDate}
                     </span>
                 </td>
-                <td><span class="fw-bold text-danger">$${debt.toFixed(2)}</span></td>
+                <td><span class="fw-bold text-danger">$${r.debt.toFixed(2)}</span></td>
                 <td>
-                    <span class="badge ${stObj.status === 'today' ? 'bg-success' : (stObj.status === 'overdue' ? 'bg-danger' : (stObj.status === 'warning' ? 'bg-warning text-dark' : 'bg-secondary'))} rounded-pill px-3 py-1">
-                        ${stObj.text}
+                    <span class="badge ${r.statusBadge} rounded-pill px-3 py-1 fw-bold">
+                        ${r.statusText}
                     </span>
                 </td>
                 <td>
@@ -17543,9 +17563,9 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
         tfoot.innerHTML = `
             <tr class="align-middle" style="background-color: #f8fafc; border-top: 2px solid #cbd5e1;">
                 <td colspan="8" class="text-end px-4 py-3 fw-bold moul-font" style="font-size: 0.95rem;">
-                    សរុបសិស្សត្រូវបង់ក្នុងខែ${khmerMonths[month - 1]} (${monthlyStudents.length} នាក់) ៖
+                    សរុបសិស្សក្នុងតារាង (${data.records.length} នាក់) ៖
                 </td>
-                <td class="fw-bold text-danger fs-5">$${totalDueAmount.toFixed(2)}</td>
+                <td class="fw-bold text-danger fs-5">$${visibleTotalDebt.toFixed(2)}</td>
                 <td colspan="2" class="text-muted small">សរុបទឹកប្រាក់ត្រូវប្រមូល</td>
             </tr>
         `;
@@ -17557,29 +17577,26 @@ window.filterMonthlyDueTable = function() {
     if (!input) return;
     const filter = input.value.toLowerCase().trim();
     const rows = document.querySelectorAll('#monthlyDueBody .monthly-due-row');
+    let visibleCount = 0;
     rows.forEach(r => {
         const text = r.textContent.toLowerCase();
-        r.style.display = text.includes(filter) ? '' : 'none';
+        const matches = text.includes(filter);
+        r.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
     });
+
+    const badge = document.getElementById('monthlyDueTableBadge');
+    if (badge) badge.innerText = `${visibleCount} នាក់`;
 };
 
-window.exportMonthlyDueExcel = function() {
-    const month = parseInt($('#monthlyDueMonthSelect').val() || (new Date().getMonth() + 1));
-    const year = parseInt($('#monthlyDueYearSelect').val() || new Date().getFullYear());
+window.exportMonthlyDueExcel = function(targetMonth, targetYear) {
+    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
 
-    const allStudents = window.rawStudentsArray || [];
-    const monthlyStudents = allStudents.filter(s => {
-        const st = (s.enrollmentStatus || '').toLowerCase().trim();
-        if (st === 'dropout' || st === 'graduated' || st === 'suspended') return false;
-        const debt = calculateRemainingAmount(s);
-        if (debt <= 0) return false;
-        let dObj = getDateObject(s.nextPaymentDate);
-        if (!dObj) return false;
-        return (dObj.getMonth() + 1) === month && dObj.getFullYear() === year;
-    });
+    const data = window.getMonthlyDueStudentsData(month, year, 'all', window.CURRENT_MONTHLY_INCLUDE_PAST);
 
-    if (monthlyStudents.length === 0) {
+    if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
             return Swal.fire('Info', `មិនមានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${khmerMonths[month - 1]} ឆ្នាំ ${year} ទេ!`, 'info');
         } else {
@@ -17591,26 +17608,220 @@ window.exportMonthlyDueExcel = function() {
         return alert('XLSX library not loaded!');
     }
 
-    const data = monthlyStudents.map((s, idx) => ({
-        'ល.រ': idx + 1,
-        'អត្តលេខ': s.displayId || '',
-        'គោត្តនាម-នាម': `${s.lastName || ''} ${s.firstName || ''}`,
-        'ឈ្មោះចិន': `${s.chineseLastName || ''}${s.chineseFirstName || ''}`,
-        'ឈ្មោះអង់គ្លេស': `${s.englishLastName || ''} ${s.englishFirstName || ''}`,
-        'ផ្នែកសិក្សា': isStudentTrilingual(s) ? 'ចំណេះដឹងទូទៅ' : (isStudentChineseFullTime(s) ? 'ចិនពេញម៉ោង' : 'ក្រៅម៉ោង'),
-        'កម្រិត': s.studyLevel || '',
-        'ម៉ោងសិក្សា': s.studyTime || '',
-        'គ្រូបន្ទុកថ្នាក់': s.teacherName || s.homeroomTeacher || '',
-        'ថ្ងៃត្រូវបង់': convertToKhmerWordDate(s.nextPaymentDate),
-        'ទឹកប្រាក់ត្រូវបង់ ($)': calculateRemainingAmount(s),
-        'ស្ថានភាព': getPaymentStatus(s).text
-    }));
+    const exportRows = data.records.map((r, idx) => {
+        const s = r.student;
+        return {
+            'ល.រ': idx + 1,
+            'អត្តលេខ': s.displayId || '',
+            'គោត្តនាម-នាម': `${s.lastName || ''} ${s.firstName || ''}`,
+            'ឈ្មោះចិន': `${s.chineseLastName || ''}${s.chineseFirstName || ''}`,
+            'ឈ្មោះអង់គ្លេស': `${s.englishLastName || ''} ${s.englishFirstName || ''}`,
+            'ភេទ': (s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី',
+            'ផ្នែកសិក្សា': isStudentTrilingual(s) ? 'ចំណេះដឹងទូទៅ' : (isStudentChineseFullTime(s) ? 'ចិនពេញម៉ោង' : 'ក្រៅម៉ោង'),
+            'កម្រិត': s.studyLevel || '',
+            'ម៉ោងសិក្សា': s.studyTime || '',
+            'គ្រូបន្ទុកថ្នាក់': s.teacherName || s.homeroomTeacher || '',
+            'ថ្ងៃត្រូវបង់': convertToKhmerDate(r.dateObj) || r.rawDate,
+            'ទឹកប្រាក់ត្រូវបង់ ($)': r.debt,
+            'ស្ថានភាព': r.statusText
+        };
+    });
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(exportRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `Due_${khmerMonths[month - 1]}_${year}`);
     XLSX.writeFile(wb, `Monthly_Due_Report_${month}_${year}.xlsx`);
 };
+
+window.executeMonthlyDuePDF = async function(targetMonth, targetYear) {
+    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || parseInt($('#dueMonthSelect').val()) || (new Date().getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || parseInt($('#dueYearSelect').val()) || new Date().getFullYear());
+    if (!month || !year) return;
+
+    const modalEl = document.getElementById('monthlyDueModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+    }
+
+    const khmerMonthsNames = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+    const monthName = khmerMonthsNames[month - 1];
+
+    const data = window.getMonthlyDueStudentsData(month, year, 'all', window.CURRENT_MONTHLY_INCLUDE_PAST);
+
+    if (data.records.length === 0) {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire('Info', `គ្មានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${monthName} ឆ្នាំ ${year} ទេ!`, 'info');
+        } else {
+            return alert(`គ្មានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${monthName} ឆ្នាំ ${year} ទេ!`);
+        }
+    }
+
+    const title = `របាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ (Monthly Due Report)`;
+    const subtitle = `សម្រាប់ខែ៖ ${monthName} ឆ្នាំ ${year}`;
+
+    const getSectionName = (s) => {
+        if (isStudentChineseFullTime(s)) return 'ចិនពេញម៉ោង';
+        if (isStudentPartTime(s)) return 'ក្រៅម៉ោង';
+        return 'ចំណះដឹងទូទៅ';
+    };
+
+    let tableRows = data.records.map((r, index) => {
+        const s = r.student;
+        const formattedDate = convertToKhmerDate(r.dateObj) || r.rawDate;
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td><b>${s.displayId || '-'}</b></td>
+                <td class="text-left">
+                    <div style="font-weight: bold;">${s.lastName || ''} ${s.firstName || ''}</div>
+                    <div style="font-size: 0.75rem; color: #666;">${s.chineseLastName || ''}${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''}</div>
+                </td>
+                <td>${(s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី'}</td>
+                <td>${getSectionName(s)}</td>
+                <td>${s.studyLevel || ''}</td>
+                <td>${s.studyTime || ''}</td>
+                <td>${s.teacherName || s.homeroomTeacher || '-'}</td>
+                <td><b>${formattedDate}</b></td>
+                <td style="color: ${r.statusColor}; font-weight: bold;">${r.statusText}</td>
+                <td class="text-right text-danger fw-bold">$${r.debt.toFixed(2)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const html = `<html><head><title>${title} - ${monthName} ${year}</title>
+        <style>
+            @page { size: landscape; margin: 10mm; }
+            @font-face {
+                font-family: 'Khmer OS Battambang';
+                src: url(data:font/truetype;charset=utf-8;base64,${typeof khmerFontBase64 !== 'undefined' ? khmerFontBase64 : ''}) format('truetype');
+            }
+            body { font-family: 'Khmer OS Battambang', sans-serif; padding: 20px; color: #333; line-height: 1.4; background: white; }
+            .header { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 3px double #8a0e5b; }
+            .logo { width: 85px; height: 85px; object-fit: cover; border-radius: 50%; border: 2px solid #8a0e5b; padding: 2px; }
+            .school-info { flex: 1; text-align: left; }
+            .school-name h1 { margin: 0; color: #8a0e5b; font-size: 1.8rem; font-weight: 900; font-family: Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+            .school-name h2 { margin: 5px 0 0; color: #333; font-size: 1.1rem; font-weight: bold; border-bottom: 2px solid #8a0e5b; display: inline-block; padding-bottom: 3px; }
+            .report-title { text-align: right; flex: 1; }
+            .report-title h2 { margin: 0; color: #8a0e5b; font-size: 1.5rem; font-weight: bold; }
+            
+            .summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+            .summary-card { padding: 12px; border-radius: 10px; text-align: center; }
+            .summary-card h3 { margin: 0; font-size: 0.9rem; font-weight: bold; }
+            .summary-card .val { font-size: 1.25rem; font-weight: bold; margin-top: 6px; }
+            
+            table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+            th, td { border: 1px solid #cbd5e1; padding: 7px 5px; text-align: center; vertical-align: middle; }
+            th { background-color: #8a0e5b; font-weight: bold; color: white; border: 1px solid #8a0e5b; }
+            .text-left { text-align: left !important; padding-left: 8px; }
+            .text-right { text-align: right !important; padding-right: 8px; }
+            .text-danger { color: #dc3545; }
+            .fw-bold { font-weight: bold; }
+            
+            .footer { margin-top: 40px; display: flex; justify-content: space-between; padding: 0 40px; page-break-inside: avoid; }
+            .signature-box { text-align: center; width: 220px; }
+            .signature-line { margin-top: 60px; border-top: 1px solid #333; width: 100%; }
+            
+            .no-print { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff0f6; padding: 12px 25px; border-radius: 10px; border: 1px solid #ff69b4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+            .btn { padding: 10px 30px; background: #8a0e5b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
+            
+            @media print {
+                .no-print { display: none; }
+                tr { break-inside: avoid; }
+                thead { display: table-header-group; }
+                th { -webkit-print-color-adjust: exact; background-color: #8a0e5b !important; color: white !important; border: 1px solid #8a0e5b !important; }
+                .summary-card { -webkit-print-color-adjust: exact; }
+            }
+        </style>
+    </head><body>
+        <div class="no-print">
+            <span class="fw-bold" style="color: #8a0e5b;"><i class="fi fi-rr-check-circle"></i> របាយការណ៍សិស្សត្រូវបង់ប្រាក់ប្រចាំខែ${monthName} រៀបចំរួចរាល់សម្រាប់បោះពុម្ព ឬរក្សាទុកជា PDF</span>
+            <button class="btn" onclick="window.print()">បោះពុម្ព (Print)</button>
+        </div>
+        <div class="header">
+            <img src="img/1.jpg" class="logo" onerror="this.src='img/logo.jpg'">
+            <div class="school-info">
+                <div class="school-name">
+                    <h1>TIAN XIN INTERNATIONAL SCHOOL</h1>
+                    <h2>សាលាអន្តរជាតិ ធានស៊ីន</h2>
+                </div>
+            </div>
+            <div class="report-title">
+                <h2>${title}</h2>
+                <div class="fw-bold" style="color: #444; margin-top: 5px; font-size: 0.95rem;">${subtitle}</div>
+                <div style="font-size: 0.82rem; margin-top: 5px; color: #666;">
+                    កាលបរិច្ឆេទចេញរបាយការណ៍: ${new Date().toLocaleDateString('en-GB')}
+                </div>
+            </div>
+        </div>
+        
+        <div class="summary-cards">
+            <div class="summary-card" style="background: #fff5f8; border: 1px solid #dc3545; color: #dc3545;">
+                <h3>សរុបហួសកំណត់ (Overdue)</h3>
+                <div class="val">${data.kpis.overdueCount} នាក់<br>$${data.kpis.overdueAmount.toFixed(2)}</div>
+            </div>
+            <div class="summary-card" style="background: #f0f8ff; border: 1px solid #0d6efd; color: #0d6efd;">
+                <h3>ត្រូវបង់ថ្ងៃនេះ (Today)</h3>
+                <div class="val">${data.kpis.todayCount} នាក់<br>$${data.kpis.todayAmount.toFixed(2)}</div>
+            </div>
+            <div class="summary-card" style="background: #fffdf5; border: 1px solid #ffc107; color: #d39e00;">
+                <h3>ជិតដល់ថ្ងៃ (Upcoming/Warning)</h3>
+                <div class="val">${data.kpis.warningCount} នាក់</div>
+            </div>
+            <div class="summary-card" style="background: #f8f9fa; border: 1px solid #8a0e5b; color: #8a0e5b;">
+                <h3>សរុបរួមត្រូវប្រមូល (Total Due)</h3>
+                <div class="val">${data.records.length} នាក់<br>$${data.kpis.totalDueAmount.toFixed(2)}</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="4%">ល.រ</th>
+                    <th width="7%">អត្តលេខ</th>
+                    <th>ឈ្មោះសិស្ស</th>
+                    <th width="6%">ភេទ</th>
+                    <th width="9%">ផ្នែក</th>
+                    <th width="9%">កម្រិត</th>
+                    <th width="11%">ម៉ោងសិក្សា</th>
+                    <th width="11%">គ្រូបន្ទុក</th>
+                    <th width="11%">ថ្ងៃត្រូវបង់</th>
+                    <th width="12%">ស្ថានភាព</th>
+                    <th width="10%">ទឹកប្រាក់</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8f9fa; font-weight: bold;">
+                    <td colspan="10" class="text-right" style="padding: 10px;">សរុបទឹកប្រាក់ត្រូវប្រមូល (Total Amount) ៖</td>
+                    <td class="text-right text-danger" style="font-size: 1rem;">$${data.kpis.totalDueAmount.toFixed(2)}</td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <div class="footer">
+            <div class="signature-box">
+                <div class="fw-bold">អ្នករៀបចំ (Prepared By)</div>
+                <div class="signature-line"></div>
+            </div>
+            <div class="signature-box">
+                <div class="fw-bold">នាយកសាលា (Principal)</div>
+                <div class="signature-line"></div>
+            </div>
+        </div>
+    </body></html>`;
+
+    let win = window.open('', '_blank');
+    if (!win) {
+        return alert('សូមអនុញ្ញាត Popup ដើម្បីមើលរបាយការណ៍ PDF!');
+    }
+    win.document.write(html);
+    win.document.close();
+};
+
+window.generateMonthlyDuePDF = window.executeMonthlyDuePDF;
 
 // Also auto-refresh monthly due summary if active when rawStudentsArray updates
 if (typeof window.renderDebtSummary === 'function') {
