@@ -1541,7 +1541,7 @@ const convertToKhmerWordDate = (dateStr) => {
 const formatDueDateWithColor = (student) => {
     if (!student) return '<span class="text-muted">មិនមាន</span>';
     const status = getPaymentStatus(student);
-    const dateStr = student.nextPaymentDate || 'មិនមាន';
+    const dateStr = student.nextPaymentDate || student.paymentDueDate || (student.postponedDate ? student.postponedDate : 'មិនមាន');
     const khDate = convertToKhmerWordDate(dateStr);
 
     if (['មិនមាន', 'N/A', '', 'Completed', '01-01-100'].includes(dateStr)) {
@@ -10023,7 +10023,48 @@ window.filterDueToday = function () {
         statusDropdown.value = 'today';
     }
     renderFilteredTable();
-    showAlert('កំពុងបង្ហាញសិស្សដែលត្រូវបង់ថ្ងៃនេះ', 'info');
+
+    const curD = new Date();
+    const curM = curD.getMonth() + 1;
+    const curY = curD.getFullYear();
+    const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+    const curMonthName = khmerMonths[curM - 1];
+
+    const todayDue = (window.rawStudentsArray || []).filter(s => {
+        const st = (s.enrollmentStatus || '').toLowerCase().trim();
+        if (st === 'dropout' || st === 'graduated' || st === 'suspended' || st === 'paidoff') return false;
+        return getPaymentStatus(s).status === 'today';
+    });
+
+    if (todayDue.length === 0) {
+        let thisMonthCount = 0;
+        (window.rawStudentsArray || []).forEach(s => {
+            if (typeof window.getStudentMonthlyDueContext === 'function') {
+                const ctx = window.getStudentMonthlyDueContext(s, curM, curY);
+                if (ctx && ctx.isTargetMonth) thisMonthCount++;
+            }
+        });
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'info',
+                title: 'សិស្សត្រូវបង់ប្រាក់ថ្ងៃនេះ',
+                html: `មិនមានសិស្សដែលដល់ថ្ងៃកំណត់បង់ចំ<strong>ថ្ងៃនេះ</strong>ទេ!<br><br>ប៉ុន្តែក្នុង<strong>ខែ${curMonthName} ឆ្នាំ ${curY}</strong> នេះ មានសិស្សត្រូវបង់សរុប <strong>${thisMonthCount} នាក់</strong>។`,
+                showCancelButton: true,
+                confirmButtonText: `<i class="fi fi-rr-calendar-clock me-1"></i> មើលសិស្សត្រូវបង់ខែ${curMonthName} (${thisMonthCount} នាក់)`,
+                cancelButtonText: 'យល់ព្រម',
+                confirmButtonColor: '#4f46e5'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.switchToMonthlyDueTab(curM, curY);
+                }
+            });
+        } else {
+            showAlert(`មិនមានសិស្សត្រូវបង់ចំថ្ងៃនេះទេ! ប៉ុន្តែមាន ${thisMonthCount} នាក់ត្រូវបង់ក្នុងខែ${curMonthName}។`, 'info');
+        }
+    } else {
+        showAlert(`បានច្រោះទិន្នន័យ៖ សិស្សត្រូវបង់ថ្ងៃនេះ (${todayDue.length} នាក់)`, 'info');
+    }
 };
 
 function getFilteredStudents() {
@@ -12148,13 +12189,7 @@ margin: 0;
     window.exportOverdueReport = () => exportPaymentReportPDF('overdue');
     // window.printPaymentReceipt assignments removed here as it is assigned in definition
 
-    /* កូដ Filter "ត្រូវបង់ថ្ងៃនេះ" */
-    window.filterDueToday = () => {
-        currentFilters.status = 'today';
-        $('#filterStatus').val('today');
-        renderFilteredTable();
-        showAlert('កំពុងបង្ហាញសិស្សដែលត្រូវបង់ថ្ងៃនេះ', 'info');
-    };
+    // window.filterDueToday is centrally managed above
 
     window.filterPaidOffData = () => {
         currentFilters.status = 'paid';
@@ -14357,6 +14392,36 @@ function updateDebtBadge(students) {
         badge.style.display = count > 0 ? 'inline-block' : 'none';
         badge.classList.add('animate__animated', 'animate__pulse');
         setTimeout(() => badge.classList.remove('animate__animated', 'animate__pulse'), 1000);
+    }
+
+    // Update Topbar Badges: Due This Month & Due Today
+    const curD = new Date();
+    const curM = curD.getMonth() + 1;
+    const curY = curD.getFullYear();
+    let thisMonthCount = 0;
+    let todayCount = 0;
+
+    activeStudents.forEach(s => {
+        if (typeof window.getStudentMonthlyDueContext === 'function') {
+            const ctx = window.getStudentMonthlyDueContext(s, curM, curY);
+            if (ctx && ctx.isTargetMonth) {
+                thisMonthCount++;
+                if (ctx.status === 'today') todayCount++;
+            }
+        } else {
+            const stObj = getPaymentStatus(s);
+            if (stObj.status === 'today') todayCount++;
+        }
+    });
+
+    const topbarMonthBadge = document.getElementById('topbarDueThisMonthBadge');
+    if (topbarMonthBadge) {
+        topbarMonthBadge.innerText = `${thisMonthCount} នាក់`;
+    }
+
+    const topbarTodayBadge = document.getElementById('topbarDueTodayBadge');
+    if (topbarTodayBadge) {
+        topbarTodayBadge.innerText = `${todayCount}`;
     }
 }
 
@@ -17167,21 +17232,28 @@ window.CURRENT_MONTHLY_INCLUDE_PAST = false;
 window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) {
     if (!student) return null;
 
-    // Filter out dropouts, graduated, or suspended students
+    // Filter out dropouts, graduated, suspended, or fully paid off students
     const enStatus = (student.enrollmentStatus || '').toLowerCase().trim();
-    if (enStatus === 'dropout' || enStatus === 'graduated' || enStatus === 'suspended') {
+    const pStatus = (student.paymentStatus || '').toLowerCase().trim();
+    if (enStatus === 'dropout' || enStatus === 'graduated' || enStatus === 'suspended' || enStatus === 'paidoff' || pStatus === 'paid full' || pStatus === 'paid') {
         return null;
     }
 
-    // Must have unpaid remaining balance
-    const debt = calculateRemainingAmount(student);
-    if (debt <= 0) return null;
+    // Determine remaining debt with multiple fallbacks
+    let debt = calculateRemainingAmount(student);
+    if (debt <= 0 && parseFloat(student.balance) > 0) debt = parseFloat(student.balance);
+    if (debt <= 0 && parseFloat(student.courseFee) > 0) debt = parseFloat(student.courseFee);
+    if (debt <= 0 && parseFloat(student.tuitionFee) > 0) debt = parseFloat(student.tuitionFee);
+    if (debt <= 0 && parseFloat(student.totalAmount) > 0) debt = parseFloat(student.totalAmount);
+    if (debt < 0) debt = 0;
 
     // Check delay / postponement
-    const pStatus = (student.paymentStatus || '').toLowerCase().trim();
     const isDelay = pStatus === 'delay' || pStatus === 'postponed' || pStatus === 'ពន្យា' || pStatus === 'ពន្យារពេល';
 
-    let rawDate = student.nextPaymentDate || student.paymentDueDate;
+    let rawDate = student.nextPaymentDate;
+    if (!rawDate || ['មិនមាន', 'n/a', '', 'undefined', 'null'].includes(String(rawDate).toLowerCase().trim())) {
+        rawDate = student.paymentDueDate;
+    }
     if (isDelay && student.postponedDate && !['មិនមាន', 'n/a', ''].includes(String(student.postponedDate).toLowerCase().trim())) {
         rawDate = student.postponedDate;
     }
