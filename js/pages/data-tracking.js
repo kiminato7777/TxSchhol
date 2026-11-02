@@ -12763,13 +12763,15 @@ margin: 0;
     };
 
     window.generateMonthlyDuePDF = async () => {
-        const month = parseInt($('#dueMonthSelect').val());
-        const year = parseInt($('#dueYearSelect').val());
+        const month = parseInt($('#monthlyDueMonthSelect').val() || $('#dueMonthSelect').val() || (new Date().getMonth() + 1));
+        const year = parseInt($('#monthlyDueYearSelect').val() || $('#dueYearSelect').val() || new Date().getFullYear());
         if (!month || !year) return;
 
         const modalEl = document.getElementById('monthlyDueModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) modalInstance.hide();
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+        }
 
         let filtered = rawStudentsArray.filter(s => {
             if ((s.enrollmentStatus || '').toLowerCase() === 'dropout') return false;
@@ -12786,8 +12788,9 @@ margin: 0;
             return (dateObj.getMonth() + 1) === month && dateObj.getFullYear() === year;
         });
 
+        const khmerMonthsNames = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
         if (filtered.length === 0) {
-            return showAlert(`គ្មានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែទី ${month} ឆ្នាំ ${year} ទេ!`, 'info');
+            return showAlert(`គ្មានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${khmerMonthsNames[month - 1]} ឆ្នាំ ${year} ទេ!`, 'info');
         }
 
         // Categorize by Status (Today, Overdue, Warning)
@@ -12802,7 +12805,7 @@ margin: 0;
         let totalAmount = todayAmount + overdueAmount + warningAmount;
         let totalCount = filtered.length;
 
-        const monthName = $('#dueMonthSelect option:selected').text();
+        const monthName = khmerMonthsNames[month - 1] || $('#dueMonthSelect option:selected').text();
         const title = `របាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ (Monthly Due Report)`;
         const subtitle = `សម្រាប់ខែ៖ ${monthName} ឆ្នាំ ${year}`;
 
@@ -17321,3 +17324,302 @@ window.loadStudentAttendanceTab = async function(studentKey) {
 
 
 
+
+
+// =========================================================================
+// DEDICATED MONTHLY PAYMENT DUE REPORTING (សរុបបំណុល & ស្ថានភាពបង់ប្រាក់តាមខែ)
+// =========================================================================
+
+window.switchToMonthlyDueTab = function() {
+    const tabEl = document.getElementById('monthly-due-tab');
+    if (tabEl) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(tabEl).show();
+        } else {
+            tabEl.click();
+        }
+    }
+    // Make sure Debt Summary container is visible
+    const view = document.getElementById('debtSummaryView');
+    if (view && view.style.display === 'none') {
+        if (typeof window.toggleDebtSummary === 'function') {
+            window.toggleDebtSummary();
+        } else {
+            view.style.display = 'block';
+        }
+    }
+    window.renderMonthlyDueSummary();
+};
+
+window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
+    const monthSelect = document.getElementById('monthlyDueMonthSelect');
+    const yearSelect = document.getElementById('monthlyDueYearSelect');
+
+    const currentD = new Date();
+    const month = targetMonth ? parseInt(targetMonth) : (monthSelect ? parseInt(monthSelect.value) : (currentD.getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (yearSelect ? parseInt(yearSelect.value) : currentD.getFullYear());
+
+    if (monthSelect) monthSelect.value = month;
+    if (yearSelect) yearSelect.value = year;
+
+    const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+    const yearDisplayEl = document.getElementById('monthlyDueYearDisplay');
+    if (yearDisplayEl) yearDisplayEl.innerText = `ឆ្នាំ ${year}`;
+
+    const titleEl = document.getElementById('monthlyDueTableTitle');
+    if (titleEl) titleEl.innerText = `បញ្ជីរាយនាមសិស្សត្រូវបង់ប្រាក់ក្នុងខែ${khmerMonths[month - 1]} ឆ្នាំ ${year}`;
+
+    const allStudents = window.rawStudentsArray || [];
+    const activeStudents = allStudents.filter(s => {
+        const st = (s.enrollmentStatus || '').toLowerCase().trim();
+        return st !== 'dropout' && st !== 'graduated' && st !== 'suspended';
+    });
+
+    // 1. Calculate Monthly Counts for ALL 12 Months to populate Quick Navigation Pills!
+    const monthCounts = Array(12).fill(0);
+    const monthAmounts = Array(12).fill(0);
+
+    activeStudents.forEach(s => {
+        const debt = calculateRemainingAmount(s);
+        if (debt <= 0) return; // Only count students who owe payment
+
+        let dObj = getDateObject(s.nextPaymentDate);
+        if (dObj && dObj.getFullYear() === year) {
+            const mIdx = dObj.getMonth();
+            if (mIdx >= 0 && mIdx < 12) {
+                monthCounts[mIdx]++;
+                monthAmounts[mIdx] += debt;
+            }
+        }
+    });
+
+    // Render Quick Month Pills
+    const pillsContainer = document.getElementById('monthlyDueQuickPills');
+    if (pillsContainer) {
+        pillsContainer.innerHTML = khmerMonths.map((mName, idx) => {
+            const mNum = idx + 1;
+            const isSelected = mNum === month;
+            const count = monthCounts[idx];
+            return `
+                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 text-nowrap fw-bold ${isSelected ? 'btn-primary shadow-sm' : 'btn-white border text-dark'}" 
+                    onclick="window.renderMonthlyDueSummary(${mNum}, ${year})" style="font-size: 0.82rem; transition: all 0.2s ease;">
+                    ${mName}
+                    <span class="badge ${isSelected ? 'bg-white text-primary' : (count > 0 ? 'bg-danger text-white' : 'bg-secondary bg-opacity-25 text-dark')} ms-1 rounded-pill">${count}</span>
+                </button>
+            `;
+        }).join('');
+    }
+
+    // 2. Filter Students specifically for the SELECTED Month & Year
+    const monthlyStudents = activeStudents.filter(s => {
+        const debt = calculateRemainingAmount(s);
+        if (debt <= 0) return false;
+
+        let dObj = getDateObject(s.nextPaymentDate);
+        if (!dObj) return false;
+        return (dObj.getMonth() + 1) === month && dObj.getFullYear() === year;
+    }).sort((a, b) => {
+        let da = getDateObject(a.nextPaymentDate) || 0;
+        let db = getDateObject(b.nextPaymentDate) || 0;
+        if (da !== db) return da - db;
+        return (parseInt(a.displayId) || 0) - (parseInt(b.displayId) || 0);
+    });
+
+    // 3. KPI Calculations
+    let totalDueAmount = 0;
+    let todayCount = 0;
+    let todayAmount = 0;
+    let overdueCount = 0;
+    let overdueAmount = 0;
+    let chineseFullCount = 0;
+    let partTimeCount = 0;
+
+    monthlyStudents.forEach(s => {
+        const debt = calculateRemainingAmount(s);
+        totalDueAmount += debt;
+        const stObj = getPaymentStatus(s);
+
+        if (stObj.status === 'today') {
+            todayCount++;
+            todayAmount += debt;
+        } else if (stObj.status === 'overdue') {
+            overdueCount++;
+            overdueAmount += debt;
+        }
+
+        if (isStudentChineseFullTime(s)) chineseFullCount++;
+        else partTimeCount++;
+    });
+
+    // Update KPI Elements
+    const totalCountEl = document.getElementById('monthlyDueTotalCount');
+    if (totalCountEl) totalCountEl.innerText = `${monthlyStudents.length} នាក់`;
+
+    const tableBadgeEl = document.getElementById('monthlyDueTableBadge');
+    if (tableBadgeEl) tableBadgeEl.innerText = `${monthlyStudents.length} នាក់`;
+
+    const totalAmountEl = document.getElementById('monthlyDueTotalAmount');
+    if (totalAmountEl) totalAmountEl.innerText = `$${totalDueAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const todayCountEl = document.getElementById('monthlyDueTodayCount');
+    if (todayCountEl) todayCountEl.innerText = `${todayCount} នាក់`;
+
+    const todayAmountEl = document.getElementById('monthlyDueTodayAmount');
+    if (todayAmountEl) todayAmountEl.innerText = `ទឹកប្រាក់: $${todayAmount.toFixed(2)}`;
+
+    const overdueCountEl = document.getElementById('monthlyDueOverdueCount');
+    if (overdueCountEl) overdueCountEl.innerText = `${overdueCount} នាក់`;
+
+    const overdueAmountEl = document.getElementById('monthlyDueOverdueAmount');
+    if (overdueAmountEl) overdueAmountEl.innerText = `ទឹកប្រាក់: $${overdueAmount.toFixed(2)}`;
+
+    const subChineseEl = document.getElementById('monthlyDueSubChinese');
+    if (subChineseEl) subChineseEl.innerText = `ចិនពេញម៉ោង: ${chineseFullCount} | ក្រៅម៉ោង: ${partTimeCount}`;
+
+    // 4. Render Table
+    const tbody = document.getElementById('monthlyDueBody');
+    const tfoot = document.getElementById('monthlyDueFoot');
+    if (!tbody) return;
+
+    if (monthlyStudents.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="py-5 text-center text-muted">
+                    <i class="fi fi-rr-calendar-check fa-3x text-secondary mb-3 d-block opacity-50"></i>
+                    <h6 class="fw-bold">គ្មានសិស្សដែលត្រូវបង់ប្រាក់ក្នុងខែ${khmerMonths[month - 1]} ឆ្នាំ ${year} ទេ!</h6>
+                    <small>សូមជ្រើសរើសខែផ្សេង ឬពិនិត្យមើលកាលបរិច្ឆេទថ្ងៃត្រូវបង់របស់សិស្ស</small>
+                </td>
+            </tr>
+        `;
+        if (tfoot) tfoot.innerHTML = '';
+        return;
+    }
+
+    const getSectionBadge = (s) => {
+        if (isStudentTrilingual(s)) return '<span class="badge bg-info bg-opacity-10 text-info border rounded-pill">ចំណេះដឹងទូទៅ</span>';
+        if (isStudentChineseFullTime(s)) return '<span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill">ចិនពេញម៉ោង</span>';
+        return '<span class="badge bg-warning bg-opacity-10 text-dark border rounded-pill">ក្រៅម៉ោង</span>';
+    };
+
+    tbody.innerHTML = monthlyStudents.map((s, idx) => {
+        const debt = calculateRemainingAmount(s);
+        const stObj = getPaymentStatus(s);
+        const khmerDueDate = convertToKhmerWordDate(s.nextPaymentDate);
+        const teacher = s.teacherName || s.homeroomTeacher || '-';
+
+        return `
+            <tr class="monthly-due-row">
+                <td class="text-muted small">${idx + 1}</td>
+                <td><span class="badge bg-light text-dark border font-monospace">${s.displayId || '-'}</span></td>
+                <td class="text-start px-3">
+                    <div class="fw-bold text-dark">${s.lastName || ''} ${s.firstName || ''}</div>
+                    <div class="small text-muted" style="font-size: 0.75rem;">${s.chineseLastName || ''}${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''}</div>
+                </td>
+                <td>${getSectionBadge(s)}</td>
+                <td><span class="badge bg-light text-secondary">${s.studyLevel || '-'}</span></td>
+                <td><small class="text-muted"><i class="fi fi-rr-clock me-1"></i>${s.studyTime || '-'}</small></td>
+                <td><small class="text-dark fw-semibold"><i class="fi fi-rr-chalkboard-user me-1 text-muted"></i>${teacher}</small></td>
+                <td>
+                    <span class="fw-bold text-dark" style="font-size: 0.85rem;">
+                        <i class="fi fi-rr-calendar me-1 text-primary"></i>${khmerDueDate}
+                    </span>
+                </td>
+                <td><span class="fw-bold text-danger">$${debt.toFixed(2)}</span></td>
+                <td>
+                    <span class="badge ${stObj.status === 'today' ? 'bg-success' : (stObj.status === 'overdue' ? 'bg-danger' : (stObj.status === 'warning' ? 'bg-warning text-dark' : 'bg-secondary'))} rounded-pill px-3 py-1">
+                        ${stObj.text}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary rounded-circle shadow-none p-2" onclick="viewStudentDetails('${s.key}')" title="មើលព័ត៌មានលម្អិត">
+                        <i class="fi fi-rr-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    if (tfoot) {
+        tfoot.innerHTML = `
+            <tr class="align-middle" style="background-color: #f8fafc; border-top: 2px solid #cbd5e1;">
+                <td colspan="8" class="text-end px-4 py-3 fw-bold moul-font" style="font-size: 0.95rem;">
+                    សរុបសិស្សត្រូវបង់ក្នុងខែ${khmerMonths[month - 1]} (${monthlyStudents.length} នាក់) ៖
+                </td>
+                <td class="fw-bold text-danger fs-5">$${totalDueAmount.toFixed(2)}</td>
+                <td colspan="2" class="text-muted small">សរុបទឹកប្រាក់ត្រូវប្រមូល</td>
+            </tr>
+        `;
+    }
+};
+
+window.filterMonthlyDueTable = function() {
+    const input = document.getElementById('monthlyDueSearch');
+    if (!input) return;
+    const filter = input.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#monthlyDueBody .monthly-due-row');
+    rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        r.style.display = text.includes(filter) ? '' : 'none';
+    });
+};
+
+window.exportMonthlyDueExcel = function() {
+    const month = parseInt($('#monthlyDueMonthSelect').val() || (new Date().getMonth() + 1));
+    const year = parseInt($('#monthlyDueYearSelect').val() || new Date().getFullYear());
+    const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+
+    const allStudents = window.rawStudentsArray || [];
+    const monthlyStudents = allStudents.filter(s => {
+        const st = (s.enrollmentStatus || '').toLowerCase().trim();
+        if (st === 'dropout' || st === 'graduated' || st === 'suspended') return false;
+        const debt = calculateRemainingAmount(s);
+        if (debt <= 0) return false;
+        let dObj = getDateObject(s.nextPaymentDate);
+        if (!dObj) return false;
+        return (dObj.getMonth() + 1) === month && dObj.getFullYear() === year;
+    });
+
+    if (monthlyStudents.length === 0) {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire('Info', `មិនមានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${khmerMonths[month - 1]} ឆ្នាំ ${year} ទេ!`, 'info');
+        } else {
+            return alert(`មិនមានទិន្នន័យសិស្សត្រូវបង់សម្រាប់ខែ ${khmerMonths[month - 1]} ឆ្នាំ ${year} ទេ!`);
+        }
+    }
+
+    if (typeof XLSX === 'undefined') {
+        return alert('XLSX library not loaded!');
+    }
+
+    const data = monthlyStudents.map((s, idx) => ({
+        'ល.រ': idx + 1,
+        'អត្តលេខ': s.displayId || '',
+        'គោត្តនាម-នាម': `${s.lastName || ''} ${s.firstName || ''}`,
+        'ឈ្មោះចិន': `${s.chineseLastName || ''}${s.chineseFirstName || ''}`,
+        'ឈ្មោះអង់គ្លេស': `${s.englishLastName || ''} ${s.englishFirstName || ''}`,
+        'ផ្នែកសិក្សា': isStudentTrilingual(s) ? 'ចំណេះដឹងទូទៅ' : (isStudentChineseFullTime(s) ? 'ចិនពេញម៉ោង' : 'ក្រៅម៉ោង'),
+        'កម្រិត': s.studyLevel || '',
+        'ម៉ោងសិក្សា': s.studyTime || '',
+        'គ្រូបន្ទុកថ្នាក់': s.teacherName || s.homeroomTeacher || '',
+        'ថ្ងៃត្រូវបង់': convertToKhmerWordDate(s.nextPaymentDate),
+        'ទឹកប្រាក់ត្រូវបង់ ($)': calculateRemainingAmount(s),
+        'ស្ថានភាព': getPaymentStatus(s).text
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Due_${khmerMonths[month - 1]}_${year}`);
+    XLSX.writeFile(wb, `Monthly_Due_Report_${month}_${year}.xlsx`);
+};
+
+// Also auto-refresh monthly due summary if active when rawStudentsArray updates
+if (typeof window.renderDebtSummary === 'function') {
+    const origRenderDebt = window.renderDebtSummary;
+    window.renderDebtSummary = function() {
+        origRenderDebt();
+        const monthlyPane = document.getElementById('monthly-due-pane');
+        if (monthlyPane && monthlyPane.classList.contains('active')) {
+            window.renderMonthlyDueSummary();
+        }
+    };
+}

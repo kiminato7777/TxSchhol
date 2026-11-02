@@ -265,23 +265,36 @@
         <div id="debtSummaryView" style="display: none; margin-bottom: 30px;">
             <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
                 <div
-                    class="card-header bg-danger text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                    class="card-header bg-danger text-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0 fw-bold"><i class="fi fi-rr-stats me-2"></i>សរុបបំណុល & ស្ថានភាពបង់ប្រាក់ (Debt
                         Status Summary)</h5>
-                    <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold" onclick="toggleDebtSummary()">
-                        <i class="fi fi-rr-cross-small"></i> បិទវិញ
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" onclick="window.switchToMonthlyDueTab()">
+                            <i class="fi fi-rr-calendar-clock me-1"></i> ត្រូវបង់តាមខែ (Due by Month)
+                        </button>
+                        <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold" onclick="toggleDebtSummary()">
+                            <i class="fi fi-rr-cross-small"></i> បិទវិញ
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body p-4 bg-light bg-opacity-50">
                     <!-- Debt Summary Tabs -->
                     <ul class="nav nav-pills mb-4 nav-justified bg-white p-2 rounded-4 shadow-sm" id="debtSummaryTabs" role="tablist"
-                        style="border: 1px solid rgba(0,0,0,0.05); max-width: 700px; margin: 0 auto;">
+                        style="border: 1px solid rgba(0,0,0,0.05); max-width: 900px; margin: 0 auto;">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active rounded-4 fw-bold py-3 d-flex align-items-center justify-content-center gap-2"
                                 id="tuition-debt-tab" data-bs-toggle="pill" data-bs-target="#tuition-debt-pane" type="button" role="tab"
                                 aria-controls="tuition-debt-pane" aria-selected="true">
                                 <i class="fi fi-rr-book-alt"></i>
                                 <span>បំណុលថ្លៃសិក្សា (Tuition Debts)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-4 fw-bold py-3 d-flex align-items-center justify-content-center gap-2"
+                                id="monthly-due-tab" data-bs-toggle="pill" data-bs-target="#monthly-due-pane" type="button" role="tab"
+                                aria-controls="monthly-due-pane" aria-selected="false" onclick="window.renderMonthlyDueSummary()">
+                                <i class="fi fi-rr-calendar-clock"></i>
+                                <span>ត្រូវបង់តាមខែ (Due by Month)</span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -478,6 +491,148 @@
                                         <tbody id="adminDebtBody">
                                             <!-- Data will be loaded by JavaScript -->
                                         </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Due Tab Pane (New Dedicated Feature) -->
+                        <div class="tab-pane fade" id="monthly-due-pane" role="tabpanel" aria-labelledby="monthly-due-tab">
+                            <!-- Filter & Action Controls Card -->
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-4">
+                                            <i class="fi fi-rr-calendar-clock fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-1 text-dark">របាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែនីមួយៗ (Monthly Due Report)</h5>
+                                            <span class="text-muted small">ពិនិត្យមើលចំនួនសិស្ស និងទឹកប្រាក់ដែលត្រូវបង់ប្រចាំខែ</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <button class="btn btn-outline-danger rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm" onclick="window.generateMonthlyDuePDF()">
+                                            <i class="fi fi-rr-file-pdf"></i> ទាញយក PDF
+                                        </button>
+                                        <button class="btn btn-outline-success rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm" onclick="window.exportMonthlyDueExcel()">
+                                            <i class="fi fi-rr-file-excel"></i> នាំចេញ Excel
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Month / Year Selectors -->
+                                <div class="row g-3 align-items-end mb-3">
+                                    <div class="col-md-4 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary">ជ្រើសរើសខែ (Select Month)</label>
+                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold" id="monthlyDueMonthSelect" onchange="window.renderMonthlyDueSummary()">
+                                            <option value="1">ខែមករា (January)</option>
+                                            <option value="2">ខែកុម្ភៈ (February)</option>
+                                            <option value="3">ខែមីនា (March)</option>
+                                            <option value="4">ខែមេសា (April)</option>
+                                            <option value="5">ខែឧសភា (May)</option>
+                                            <option value="6">ខែមិថុនា (June)</option>
+                                            <option value="7">ខែកក្កដា (July)</option>
+                                            <option value="8">ខែសីហា (August)</option>
+                                            <option value="9">ខែកញ្ញា (September)</option>
+                                            <option value="10">ខែតុលា (October)</option>
+                                            <option value="11" selected>ខែវិច្ឆិកា (November)</option>
+                                            <option value="12">ខែធ្នូ (December)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary">ជ្រើសរើសឆ្នាំ (Select Year)</label>
+                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold" id="monthlyDueYearSelect" onchange="window.renderMonthlyDueSummary()">
+                                            <option value="2025">ឆ្នាំ ២០២៥</option>
+                                            <option value="2026" selected>ឆ្នាំ ២០២៦</option>
+                                            <option value="2027">ឆ្នាំ ២០២៧</option>
+                                            <option value="2028">ឆ្នាំ ២០២៨</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5 col-sm-12">
+                                        <label class="form-label small fw-bold text-secondary">ស្វែងរកក្នុងតារាងខែនេះ (Search Student)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fi fi-rr-search text-muted"></i></span>
+                                            <input type="text" class="form-control border-0 bg-light py-2" id="monthlyDueSearch" placeholder="ស្វែងរកឈ្មោះ, ID, ម៉ោង, គ្រូ..." oninput="window.filterMonthlyDueTable()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 12 Months Quick Navigation Pills with Counts -->
+                                <div class="p-2 bg-light rounded-4 border">
+                                    <div class="small fw-bold text-muted mb-2 px-2 d-flex justify-content-between">
+                                        <span><i class="fi fi-rr-apps me-1 text-primary"></i> ចុចលើខែនីមួយៗ ដើម្បីមើលចំនួនសិស្សត្រូវបង់៖</span>
+                                        <span class="text-primary fw-bold" id="monthlyDueYearDisplay">ឆ្នាំ ២០២៦</span>
+                                    </div>
+                                    <div class="d-flex gap-2 overflow-auto py-1 px-1 flex-nowrap" id="monthlyDueQuickPills" style="scrollbar-width: thin;">
+                                        <!-- Rendered dynamically by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selected Month KPI Summary Cards -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-primary border-4 h-100">
+                                        <div class="small text-secondary fw-semibold mb-1">សិស្សត្រូវបង់សរុប (Total Due)</div>
+                                        <div class="fw-bold text-primary fs-3" id="monthlyDueTotalCount">0 នាក់</div>
+                                        <div class="small text-muted mt-1" id="monthlyDueSubChinese">ចិនពេញម៉ោង: 0 | ក្រៅម៉ោង: 0</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-danger border-4 h-100">
+                                        <div class="small text-secondary fw-semibold mb-1">ទឹកប្រាក់ត្រូវប្រមូលសរុប (Due Amount)</div>
+                                        <div class="fw-bold text-danger fs-3" id="monthlyDueTotalAmount">$0.00</div>
+                                        <div class="small text-muted mt-1">បំណុលដែលត្រូវប្រមូលក្នុងខែនេះ</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-info border-4 h-100">
+                                        <div class="small text-secondary fw-semibold mb-1">ត្រូវបង់ថ្ងៃនេះ (Due Today)</div>
+                                        <div class="fw-bold text-info fs-3" id="monthlyDueTodayCount">0 នាក់</div>
+                                        <div class="small text-muted mt-1" id="monthlyDueTodayAmount">ទឹកប្រាក់: $0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-warning border-4 h-100">
+                                        <div class="small text-secondary fw-semibold mb-1">ហួសកាលកំណត់ (Overdue)</div>
+                                        <div class="fw-bold text-warning fs-3" id="monthlyDueOverdueCount">0 នាក់</div>
+                                        <div class="small text-muted mt-1" id="monthlyDueOverdueAmount">ទឹកប្រាក់: $0.00</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Monthly Students Table -->
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom flex-wrap gap-2">
+                                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                                        <i class="fi fi-rr-list text-primary"></i>
+                                        <span id="monthlyDueTableTitle">បញ្ជីរាយនាមសិស្សត្រូវបង់ប្រាក់ក្នុងខែវិច្ឆិកា ឆ្នាំ ២០២៦</span>
+                                    </h6>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold" id="monthlyDueTableBadge">0 នាក់</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" id="monthlyDueTable">
+                                        <thead class="bg-dark text-white text-center">
+                                            <tr>
+                                                <th style="width: 50px;">ល.រ</th>
+                                                <th style="width: 90px;">អត្តលេខ</th>
+                                                <th class="text-start px-3">ឈ្មោះសិស្ស (Student Name)</th>
+                                                <th style="width: 130px;">ផ្នែកសិក្សា</th>
+                                                <th style="width: 110px;">កម្រិត</th>
+                                                <th style="width: 120px;">ម៉ោងសិក្សា</th>
+                                                <th style="width: 130px;">គ្រូបន្ទុកថ្នាក់</th>
+                                                <th style="width: 130px;">ថ្ងៃត្រូវបង់ (Due Date)</th>
+                                                <th style="width: 110px;">ទឹកប្រាក់</th>
+                                                <th style="width: 130px;">ស្ថានភាព</th>
+                                                <th style="width: 80px;">លម្អិត</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="monthlyDueBody" class="text-center">
+                                            <!-- Rendered dynamically by JavaScript -->
+                                        </tbody>
+                                        <tfoot id="monthlyDueFoot" class="bg-light fw-bold text-center">
+                                            <!-- Subtotals -->
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>

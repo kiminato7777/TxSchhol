@@ -2,98 +2,135 @@
   "rules": {
     ".read": false,
     ".write": false,
-
     "users": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["role", "email"]
+      ".indexOn": [
+        "role",
+        "email"
+      ]
     },
-
     "students": {
       ".read": true,
       ".write": "auth != null",
-      ".indexOn": ["displayId", "lastName", "classroom", "grade", "studyTime", "shift", "status"]
+      ".indexOn": [
+        "displayId",
+        "lastName",
+        "classroom",
+        "grade",
+        "studyTime",
+        "shift",
+        "status"
+      ]
     },
-
     "staff": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["role", "status", "classroom", "nameKhmer"]
+      ".indexOn": [
+        "role",
+        "status",
+        "classroom",
+        "nameKhmer"
+      ]
     },
-
     "settings": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
-
     "classes": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
-
     "attendance": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["date", "class", "status"]
+      ".indexOn": [
+        "date",
+        "class",
+        "status"
+      ]
     },
-
     "student_attendance": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["date", "class", "studentId"]
+      ".indexOn": [
+        "date",
+        "class",
+        "studentId"
+      ]
     },
-
     "calendarEvents": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["date", "startDate"]
+      ".indexOn": [
+        "date",
+        "startDate"
+      ]
     },
-
     "payments": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["studentId", "date", "status"]
+      ".indexOn": [
+        "studentId",
+        "date",
+        "status"
+      ]
     },
-
     "installments": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["studentId", "dueDate", "status"]
+      ".indexOn": [
+        "studentId",
+        "dueDate",
+        "status"
+      ]
     },
-
     "expenses": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["date", "category"]
+      ".indexOn": [
+        "date",
+        "category"
+      ]
     },
-
     "sales": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["date", "invoiceNo"]
+      ".indexOn": [
+        "date",
+        "invoiceNo"
+      ]
     },
-
     "transactions": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["date", "type", "category"]
+      ".indexOn": [
+        "date",
+        "type",
+        "category"
+      ]
     },
-
     "inventory": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["category", "code", "status"]
+      ".indexOn": [
+        "category",
+        "code",
+        "status"
+      ]
     },
-
     "studentCounter": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
-
     "staff_activities": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["timestamp", "action", "module"]
+      ".indexOn": [
+        "timestamp",
+        "action",
+        "module"
+      ]
     }
   }
 }
