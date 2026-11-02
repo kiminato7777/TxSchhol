@@ -59,8 +59,92 @@
         <!-- Main Student Tracking Section (Hidden when in Card Studio mode) -->
         <div id="trackingMainSection">
 
+        <!-- Top Main Header Bar (100% Match with Original Design) -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pt-1">
+            <!-- Left: Page Title & Icon -->
+            <div class="d-flex align-items-center gap-3">
+                <div style="color: #8a0e5b; font-size: 2.3rem; line-height: 1;">
+                    <i class="fi fi-rr-users"></i>
+                </div>
+                <div class="moul-font" style="color: #8a0e5b; font-size: 1.35rem; line-height: 1.25;">
+                    បញ្ជីឈ្មោះ<br>សិស្ស
+                </div>
+            </div>
+
+            <!-- Right: Action Bar Pill Container -->
+            <div class="d-flex align-items-center gap-2 bg-white rounded-pill px-3 py-2 shadow-sm border flex-wrap">
+                <!-- Theme Toggle (Moon / Sun) -->
+                <button type="button" class="btn btn-light rounded-circle theme-toggle-btn border d-flex align-items-center justify-content-center p-0 shadow-none" onclick="toggleTheme()" style="width: 38px; height: 38px;" title="ប្ដូរ Dark/Light Mode">
+                    <i class="fi fi-rr-moon text-dark"></i>
+                </button>
+
+                <!-- របាយការណ៍ & នាំចេញ Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-light rounded-pill px-3 py-1 fw-bold text-primary border d-flex align-items-center gap-2 shadow-none dropdown-toggle" type="button" id="exportReportDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #f0f7ff; border-color: #b9d7ff !important; font-size: 0.9rem;">
+                        <i class="fi fi-rr-share text-primary"></i>
+                        <span>របាយការណ៍ & នាំចេញ</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" aria-labelledby="exportReportDropdown" style="min-width: 275px; z-index: 1060;">
+                        <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍បង់ប្រាក់ & បំណុល</h6></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportTodayDuePDF()"><i class="fi fi-rr-calendar-clock text-primary"></i> សិស្សត្រូវបង់ថ្ងៃនេះ (Today Due)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('overdue')"><i class="fi fi-rr-alarm-exclamation text-danger"></i> សិស្សហួសកាលកំណត់ (Overdue)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('warning')"><i class="fi fi-rr-time-forward text-warning"></i> សិស្សជិតដល់ថ្ងៃបង់ (Warning)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('debt')"><i class="fi fi-rr-money-bill-wave text-danger"></i> របាយការណ៍បំណុលសរុប (Debts)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('delay')"><i class="fi fi-rr-clock text-info"></i> សិស្សពន្យារការបង់ (Delay)</a></li>
+                        <li><hr class="dropdown-divider my-2"></li>
+                        <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍ប្រចាំខែ / ឆ្នាំ / គ្រូ</h6></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadMonthlyReport()"><i class="fi fi-rr-calendar text-success"></i> របាយការណ៍ប្រចាំខែ (Monthly)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadYearlyReport()"><i class="fi fi-rr-calendar-lines text-success"></i> របាយការណ៍ប្រចាំឆ្នាំ (Yearly)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadClassTeacherReport()"><i class="fi fi-rr-chalkboard-user text-info"></i> របាយការណ៍តាមគ្រូបន្ទុកថ្នាក់</a></li>
+                        <li><hr class="dropdown-divider my-2"></li>
+                        <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">នាំចេញតារាងបច្ចុប្បន្ន (Current View)</h6></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportCurrentViewPDF()"><i class="fi fi-rr-file-pdf text-danger"></i> នាំចេញជា PDF</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportCurrentViewExcel()"><i class="fi fi-rr-file-excel text-success"></i> នាំចេញជា Excel (.xlsx)</a></li>
+                    </ul>
+                </div>
+
+                <!-- ស្ថានភាពបំណុល & ការបង់ប្រាក់ Button (Red) -->
+                <button type="button" class="btn btn-danger rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-2 shadow-none" onclick="toggleDebtSummary()" title="មើលស្ថានភាពបំណុល & ការបង់ប្រាក់" style="font-size: 0.9rem; background-color: #dc3545;">
+                    <i class="fi fi-rr-exclamation"></i>
+                    <span>ស្ថានភាពបំណុល & ការបង់ប្រាក់</span>
+                </button>
+
+                <!-- ត្រូវបង់ថ្ងៃនេះ Button (Blue) -->
+                <button type="button" class="btn btn-primary rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-2 shadow-none" onclick="filterDueToday()" title="បង្ហាញសិស្សត្រូវបង់ថ្ងៃនេះ" style="font-size: 0.9rem; background-color: #0d6efd;">
+                    <i class="fi fi-rr-calendar-check"></i>
+                    <span>ត្រូវបង់ថ្ងៃនេះ</span>
+                </button>
+
+                <!-- ឯកសារ Dropdown (Teal) -->
+                <div class="dropdown">
+                    <button class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-none dropdown-toggle" type="button" id="docDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #0ea5e9; font-size: 0.9rem;">
+                        <i class="fi fi-rr-document"></i>
+                        <span>ឯកសារ</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" aria-labelledby="docDropdown" style="min-width: 250px; z-index: 1060;">
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="if(typeof openStudentCardTab==='function')openStudentCardTab();"><i class="fi fi-rr-id-badge text-primary"></i> បង្កើតកាតសិស្ស (Student Card Studio)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="if(typeof openLeaveRequestModal==='function')openLeaveRequestModal();"><i class="fi fi-rr-document-signed text-warning"></i> លិខិតសុំច្បាប់ (Leave Request)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="if(typeof printCertificate==='function')printCertificate();"><i class="fi fi-rr-diploma text-success"></i> លិខិតបញ្ជាក់ការសិក្សា (Certificate)</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="if(typeof openMonthlyDueModal==='function')openMonthlyDueModal();"><i class="fi fi-rr-calendar-clock text-info"></i> បញ្ជីត្រូវបង់ប្រចាំខែ (Monthly Due)</a></li>
+                    </ul>
+                </div>
+
+                <!-- ឈ្មោះជាន់គ្នា Button (Orange) -->
+                <button type="button" class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-none" onclick="checkDuplicateNames()" title="ពិនិត្យមើលឈ្មោះសិស្សជាន់គ្នា" style="background-color: #e67e22; font-size: 0.9rem;">
+                    <i class="fi fi-rr-copy"></i>
+                    <span>ឈ្មោះជាន់គ្នា</span>
+                </button>
+
+                <!-- គ្មានឈ្មោះចិន Button (Dark Red / Maroon) -->
+                <button type="button" class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-none" onclick="checkMissingChineseNames()" title="ពិនិត្យមើលសិស្សដែលគ្មានឈ្មោះចិន" style="background-color: #961828; font-size: 0.9rem;">
+                    <i class="fi fi-rr-id-badge"></i>
+                    <span>គ្មានឈ្មោះចិន</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Statistics Cards -->
-        <div class="row g-4 mb-5">
+        <div class="row g-4 mb-4">
             <div class="col-xl col-md-4 col-sm-6">
                 <div
                     class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-primary hover-lift">
@@ -89,7 +173,7 @@
                 <div
                     class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-info hover-lift">
                     <div class="text-info mb-2 opacity-75"><i class="fi fi-rr-child fa-2x"></i></div>
-                    <div class="text-secondary small fw-bold text-uppercase mb-1">ថ្នាក់ចំណះដឹងទូទៅ</div>
+                    <div class="text-secondary small fw-bold text-uppercase mb-1">ថ្នាក់ចំណេះដឹងទូទៅ</div>
                     <div class="h3 mb-0 fw-bold text-dark" id="statPreschool3Lang">0 នាក់</div>
                     <div class="mt-2 text-muted fw-bold" style="font-size: 0.85rem;">
                         ប្រុស: <span id="statPre3LangMale" class="text-primary">0</span> | 
@@ -101,7 +185,7 @@
                 <div
                     class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-success hover-lift">
                     <div class="text-success mb-2 opacity-75"><i class="fi fi-rr-users fa-2x"></i></div>
-                    <div class="text-secondary small fw-bold text-uppercase mb-1">សិស្សសរុប (Active)</div>
+                    <div class="text-secondary small fw-bold text-uppercase mb-1">សិស្សសរុប (ACTIVE)</div>
                     <div class="h3 mb-0 fw-bold text-dark" id="statTotalStudents">0 នាក់</div>
                     <div class="mt-2 text-muted fw-bold" style="font-size: 0.85rem;">
                         ប្រុស: <span id="statActiveMale" class="text-primary">0</span> | 
@@ -113,11 +197,14 @@
                 <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-danger bg-opacity-10 h-100 border-bottom border-4 border-danger hover-lift"
                     style="cursor: pointer;" onclick="toggleDebtSummary()">
                     <div class="text-danger mb-2 opacity-75"><i class="fi fi-rr-money-bill-wave fa-2x"></i></div>
-                    <div class="text-danger small fw-bold text-uppercase mb-1">សរុបបំណុល (Total Debt)</div>
+                    <div class="text-danger small fw-bold text-uppercase mb-1">សរុបបំណុល (TOTAL DEBT)</div>
                     <div class="h3 mb-0 fw-bold text-danger" id="statTotalDebt">$0.00</div>
                 </div>
             </div>
         </div>
+
+        <!-- Decorative Pink Accent Line -->
+        <div class="w-100 my-4" style="height: 3px; background: linear-gradient(90deg, #e83e8c, #d63384); border-radius: 2px;"></div>
 
         <div class="search-filter-section mb-5">
             <div class="row g-4 d-flex align-items-end">

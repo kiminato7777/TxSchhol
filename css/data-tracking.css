@@ -2141,3 +2141,47 @@
     font-size: 16px;
     white-space: nowrap;
 }
+
+
+/* --- Top Action Header Styles (Matching Original Design 100%) --- */
+[data-theme="dark"] .bg-white.rounded-pill {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: #f8fafc !important;
+}
+
+.theme-toggle-btn {
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    transform: rotate(20deg) scale(1.05);
+}
+
+.dropdown-menu .dropdown-item {
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background-color: #f1f5f9;
+    padding-left: 1.25rem;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .dropdown-menu .dropdown-item {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .dropdown-menu .dropdown-item:hover {
+    background-color: #334155;
+    color: #ffffff;
+}
