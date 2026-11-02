@@ -1,0 +1,10 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scratch / temporary directories
+scratch/
+*.log
+
+push_to_github.cmd

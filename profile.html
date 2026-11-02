@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="km">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រងសាលាអន្តរជាតិ (Dashboard)</title>
+    <link rel="icon" type="image/jpeg" href="/img/1.jpg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preload" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
+        as="style">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+    <link rel="stylesheet" href="/css/loader.css">
+
+    <script src="/js/core/loader-init.js"></script>
+    <script src="/js/core/system-core-standard.js"></script>
+    <script src="/js/core/theme-mode.js"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+    <style>
+        * { font-family: 'Kantumruy Pro', sans-serif; }
+
+        /* ─── Header Shimmer / Gold Reflection Sweep ─── */
+        @keyframes shimmerSweep {
+            0%   { background-position: -300% center; }   /* reflection starts off-left  */
+            28%  { background-position:  300% center; }   /* reflection exits off-right  */
+            100% { background-position:  300% center; }   /* hold static until next loop */
+        }
+        .header-shimmer-text {
+            background: linear-gradient(
+                105deg,                        /* diagonal for natural look */
+                #7a5200   0%,
+                #c8860a  15%,
+                #e8b84b  28%,
+                #ffd700  40%,   /* gold center */
+                #ffe066  50%,   /* bright reflection flash */
+                #ffd700  60%,
+                #e8b84b  72%,
+                #c8860a  85%,
+                #7a5200 100%
+            ),
+            linear-gradient(
+                90deg,
+                #7a5200 0%, #ffd700 50%, #7a5200 100%   /* static base fallback */
+            );
+            background: linear-gradient(
+                90deg,
+                #a06000   0%,
+                #d4940e  20%,
+                #f7d060  35%,
+                #ffffff  50%,   /* ← bright sweep highlight */
+                #f7d060  65%,
+                #d4940e  80%,
+                #a06000 100%
+            );
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: shimmerSweep 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            display: inline-block;
+            filter: drop-shadow(0 1px 2px rgba(200,134,10,0.4));
+        }
+    </style>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+
+    <!-- Animated Butterflies -->
+    <div class="butterfly"></div>
+    <div class="butterfly"></div>
+    <div class="butterfly"></div>
+    <div class="butterfly"></div>
+
+    <!-- Enhanced Notification Button -->
+
+
+    <div id="sidebar">
+        <!-- Dashboard Sidebar injected by sidebar.js?v=20261021 -->
+    </div>
+
+    <div id="main-content">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 animate-up" style="position: relative; z-index: 1050;">
+            <div class="mb-3 mb-md-0 d-flex align-items-center gap-4">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center" onclick="toggleDesktopSidebar()" title="បង្រួម/ពង្រីក Sidebar (Toggle Sidebar)" style="width: 48px; height: 48px; border: 1px solid #f8fafc; background: white;">
+                        <i class="fi fi-rr-menu-burger" style="font-size: 1.1rem; color: #8a0e5b;"></i>
+                    </button>
+                    <button class="btn btn-light rounded-circle shadow-sm d-none d-lg-flex align-items-center justify-content-center" onclick="toggleFullScreen()" title="ពេញអេក្រង់ (Full Screen)" style="width: 48px; height: 48px; border: 1px solid #f8fafc; background: white;">
+                        <i class="fi fi-rr-expand" style="font-size: 1.1rem; color: #8a0e5b;"></i>
+                    </button>
+                    <button class="btn btn-light rounded-circle shadow-sm d-none d-lg-flex align-items-center justify-content-center theme-toggle-btn" onclick="toggleTheme()" title="ប្តូររចនាប័ទ្ម (Change Theme)" style="width: 48px; height: 48px; border: 1px solid #f8fafc; background: white;">
+                        <i class="fi fi-rr-moon" style="font-size: 1.1rem; color: #8a0e5b;"></i>
+                    </button>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-1 d-flex align-items-center" style="font-size: 1.6rem; letter-spacing: 0.5px;">
+                        <i class="fi fi-rr-school me-2" style="color: #d4940e;"></i>
+                        <span class="header-shimmer-text">ប្រព័ន្ធគ្រប់គ្រងសាលាអន្តរជាតិ ធានស៊ីន</span>
+                    </h4>
+                    <p class="mb-0" style="font-size: 0.92rem; color: #64748b;">
+                        សួស្ដី! លោកគ្រូ <span id="welcome-user-name" class="fw-bold" style="color: #8a0e5b;">User</span> សូមស្វាគមន៍មកកាន់ផ្ទាំងគ្រប់គ្រងទិន្នន័យ។
+                    </p>
+
+                </div>
+            </div>
+            
+
+        </div>
+
+        <!-- Profile UI -->
+        <div class="profile-container p-4 animate-up" style="animation-delay: 0.1s;">
+            <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 800px; margin: 0 auto;">
+                <h2 class="text-dark fw-bold m-0" style="font-size: 1.8rem; letter-spacing: 0.5px;">គណនីរបស់អ្នក <span class="fw-normal" style="font-size: 1.2rem; color: #64748b;">(Profile)</span></h2>
+                <div class="text-muted fw-bold" style="font-size: 0.9rem;">
+                    <a href="/index.html" class="text-decoration-none" style="color: #64748b;"><i class="fi fi-rr-apps me-1"></i>ផ្ទាំងគ្រប់គ្រង</a> <span class="mx-2 text-secondary">/</span> <span style="color: #3b82f6;">គណនី</span>
+                </div>
+            </div>
+
+            <div class="profile-card mx-auto">
+                <!-- Cover Image -->
+                <div class="profile-cover">
+                    <button class="profile-edit-cover-btn">
+                        <i class="fi fi-rr-edit"></i>
+                        <span>កែប្រែព័ត៌មាន</span>
+                    </button>
+                </div>
+
+                <!-- Avatar -->
+                <div class="profile-avatar-wrapper">
+                    <img src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff" id="profilePageImage" alt="Profile Avatar">
+                    <button class="profile-avatar-edit-btn">
+                        <i class="fi fi-rr-camera"></i>
+                    </button>
+                </div>
+
+                <!-- Profile Info -->
+                <div class="profile-info-section text-center">
+                    <h3 class="profile-name" id="profilePageName">កំពុងទាញយក...</h3>
+                    <div class="profile-role text-muted mb-3" id="profilePageRole">តួនាទីអ្នកប្រើប្រាស់</div>
+
+
+                    <!-- Stats -->
+                    <div class="profile-stats mb-4">
+                        <div class="stat-item">
+                            <div class="stat-value text-primary" id="statUsageCount">15</div>
+                            <div class="stat-label">ចំនួនប្រើប្រាស់</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <div class="stat-value text-dark" id="statRoleText">Admin</div>
+                            <div class="stat-label">តួនាទី</div>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item" style="position: relative;">
+                            <div class="stat-value text-dark" id="statDobText" style="font-size: 1.1rem; line-height: 1.6rem; margin-top: 5px;">-</div>
+                            <div class="stat-label">ថ្ងៃខែឆ្នាំកំណើត</div>
+                        </div>
+                    </div>
+
+                    <!-- About Me -->
+                    <div class="profile-about px-4 mx-auto mb-4" style="max-width: 600px;">
+                        <h6 class="fw-bold mb-3">អំពីខ្ញុំ (About Me)</h6>
+                        <p class="text-muted small lh-lg" id="profilePageBio">
+                            សូមស្វាគមន៍មកកាន់ប្រវត្តិរូបរបស់ខ្ញុំ។ ព័ត៌មានលម្អិតបន្ថែមនឹងត្រូវបានបង្ហាញនៅទីនេះ យោងទៅតាមការបញ្ចូលទិន្នន័យពីទំព័រការកំណត់។
+                        </p>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="profile-social mb-2">
+                        <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.85rem;">តាមដានខ្ញុំនៅលើ (Follow me on)</h6>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="#" class="social-icon"><i class="fi fi-brands-facebook"></i></a>
+                            <a href="#" class="social-icon"><i class="fi fi-brands-twitter"></i></a>
+                            <a href="#" class="social-icon"><i class="fi fi-brands-linkedin"></i></a>
+                            <a href="#" class="social-icon"><i class="fi fi-rr-globe"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .profile-container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+            .profile-card {
+                background: #ffffff;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                border: 1px solid #f1f5f9;
+                max-width: 800px; /* Moderate size */
+                overflow: hidden;
+                position: relative;
+                padding-bottom: 2rem;
+            }
+            .profile-cover {
+                height: 200px;
+                background: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+                position: relative;
+            }
+            /* Cover edit button — glassmorphism pill */
+            .profile-edit-cover-btn {
+                position: absolute;
+                bottom: 16px;
+                right: 16px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 18px;
+                border-radius: 50px;
+                border: 1.5px solid rgba(255,255,255,0.45);
+                background: rgba(255,255,255,0.18);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                color: white;
+                font-size: 0.82rem;
+                font-weight: 600;
+                letter-spacing: 0.3px;
+                cursor: pointer;
+                transition: all 0.22s cubic-bezier(.4,0,.2,1);
+                box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+                font-family: inherit;
+            }
+            .profile-edit-cover-btn:hover {
+                background: rgba(255,255,255,0.32);
+                border-color: rgba(255,255,255,0.7);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+            }
+            .profile-edit-cover-btn:active {
+                transform: translateY(0);
+            }
+            .profile-edit-cover-btn i {
+                font-size: 0.88rem;
+            }
+            .profile-avatar-wrapper {
+                width: 120px;
+                height: 120px;
+                margin: -60px auto 16px;
+                position: relative;
+                z-index: 2;
+            }
+            .profile-avatar-wrapper img {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                border: 4px solid #ffffff;
+                object-fit: cover;
+                background: #fff;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            }
+            /* Avatar camera button */
+            .profile-avatar-edit-btn {
+                position: absolute;
+                bottom: 4px;
+                right: 4px;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #8a0e5b, #c0397b);
+                color: white;
+                border: 2.5px solid #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.22s;
+                box-shadow: 0 2px 8px rgba(138,14,91,0.35);
+                font-size: 0.78rem;
+            }
+            .profile-avatar-edit-btn:hover {
+                transform: scale(1.12);
+                box-shadow: 0 4px 14px rgba(138,14,91,0.5);
+            }
+            .profile-name {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #1e293b;
+                margin-bottom: 4px;
+            }
+            .profile-role {
+                font-size: 0.95rem;
+                font-weight: 500;
+            }
+            .profile-stats {
+                background: #ffffff;
+                border-top: 1px solid #f1f5f9;
+                border-bottom: 1px solid #f1f5f9;
+                padding: 24px 0;
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                width: 100%;
+                margin: 0;
+            }
+            .stat-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            .stat-value {
+                font-size: 1.6rem;
+                font-weight: 800;
+                color: #1e293b;
+                margin-bottom: 4px;
+                letter-spacing: -0.5px;
+            }
+            .stat-label {
+                color: #64748b;
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .stat-divider {
+                width: 1px;
+                height: 40px;
+                background: #e2e8f0;
+            }
+            .social-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #f1f5f9;
+                color: #475569;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+            .social-icon:hover {
+                background: #3b82f6;
+                color: white;
+                transform: translateY(-2px);
+            }
+        /* ─── Edit Profile Modal – Premium Modern UI ─── */
+        @keyframes profileModalSlideIn {
+            from { opacity: 0; transform: translateY(-18px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0)     scale(1);    }
+        }
+        .profile-edit-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.18);
+            animation: profileModalSlideIn 0.28s cubic-bezier(.4,0,.2,1) both;
+        }
+        /* ── Header ── */
+        .pem-header {
+            background: linear-gradient(135deg, #6a0040 0%, #8a0e5b 50%, #c0397b 100%);
+            padding: 28px 28px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        .pem-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .pem-header-title { color: white; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.3px; position: relative; }
+        .pem-header-subtitle { color: rgba(255,255,255,0.72); font-size: 0.8rem; position: relative; }
+        .pem-close-btn {
+            position: absolute; top: 16px; right: 16px;
+            background: rgba(255,255,255,0.15); border: none;
+            width: 32px; height: 32px; border-radius: 50%;
+            color: white; font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .pem-close-btn:hover { background: rgba(255,255,255,0.28); }
+        /* Avatar preview inside header */
+        .pem-avatar-strip {
+            position: absolute; bottom: -36px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .pem-avatar-strip img {
+            width: 72px; height: 72px; border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+        /* ── Body ── */
+        .pem-body { padding: 52px 28px 8px; }
+        /* Floating-label input group */
+        .pem-field {
+            position: relative;
+            margin-bottom: 18px;
+        }
+        .pem-field-icon {
+            position: absolute; top: 50%; left: 14px;
+            transform: translateY(-50%);
+            color: #8a0e5b; font-size: 0.95rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+        .pem-field.textarea-field .pem-field-icon { top: 14px; transform: none; }
+        .pem-field input, .pem-field textarea {
+            width: 100%;
+            padding: 14px 14px 6px 42px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            color: #1e293b;
+            background: #fafafa;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            resize: none;
+            font-family: inherit;
+        }
+        .pem-field textarea { padding-top: 20px; min-height: 90px; }
+        .pem-field input:focus, .pem-field textarea:focus {
+            border-color: #8a0e5b;
+            box-shadow: 0 0 0 3px rgba(138,14,91,0.10);
+            background: #fff;
+        }
+        .pem-field label {
+            position: absolute; left: 42px; top: 10px;
+            font-size: 0.7rem; font-weight: 700;
+            color: #8a0e5b; letter-spacing: 0.4px;
+            text-transform: uppercase; pointer-events: none;
+        }
+        .pem-field.textarea-field label { top: 8px; }
+        /* Info card */
+        .pem-info-card {
+            background: linear-gradient(135deg, #fdf4f8, #fce7f3);
+            border: 1px solid #f9a8d4;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            color: #6b2f50;
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 8px;
+        }
+        .pem-info-card i { color: #8a0e5b; font-size: 1rem; flex-shrink: 0; }
+        .pem-info-card a { color: #8a0e5b; font-weight: 700; text-decoration: none; }
+        .pem-info-card a:hover { text-decoration: underline; }
+        /* Footer */
+        .pem-footer {
+            padding: 16px 28px 24px;
+            display: flex; justify-content: flex-end; gap: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .pem-btn-cancel {
+            padding: 10px 24px; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; background: white;
+            color: #64748b; font-weight: 600; font-size: 0.88rem;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+        .pem-btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .pem-btn-save {
+            padding: 10px 28px; border-radius: 10px; border: none;
+            background: linear-gradient(135deg, #8a0e5b, #c0397b);
+            color: white; font-weight: 700; font-size: 0.88rem;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(138,14,91,0.35);
+            display: flex; align-items: center; gap: 8px;
+            font-family: inherit;
+        }
+        .pem-btn-save:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(138,14,91,0.45); }
+        .pem-btn-save:active { transform: translateY(0); }
+        .pem-btn-save:disabled { opacity: 0.65; transform: none; cursor: not-allowed; }
+        </style>
+
+
+        <!-- ============ Edit Profile Modal – Premium Modern UI ============ -->
+        <div class="modal fade profile-edit-modal" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+                <div class="modal-content" style="border-radius:20px; overflow:hidden;">
+
+                    <!-- ── Gradient Header ── -->
+                    <div class="pem-header">
+                        <!-- Close -->
+                        <button class="pem-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="fi fi-rr-cross-small"></i>
+                        </button>
+                        <div class="pem-header-title">
+                            <i class="fi fi-rr-user-pen me-2"></i>កែប្រែព័ត៌មានប្រវត្តិរូប
+                        </div>
+                        <div class="pem-header-subtitle mt-1">ចុចខ្មែលស័មប្រើប្រាស់ប្រែការរក្សាទុក</div>
+                        <!-- Avatar strip -->
+                        <div class="pem-avatar-strip">
+                            <img id="pemAvatarImg" src="https://ui-avatars.com/api/?name=User&background=8a0e5b&color=fff" alt="avatar">
+                        </div>
+                    </div>
+
+                    <!-- ── Body ── -->
+                    <div class="pem-body">
+
+                        <!-- Full Name -->
+                        <div class="pem-field">
+                            <i class="fi fi-rr-user pem-field-icon"></i>
+                            <label for="editFullName">ឈ្មោះពេញ</label>
+                            <input type="text" id="editFullName" placeholder="បញ្ចូលឈ្មោះពេញ..." autocomplete="name">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="pem-field">
+                            <i class="fi fi-rr-smartphone pem-field-icon"></i>
+                            <label for="editPhone">លេខទូរស័ព្ទ</label>
+                            <input type="tel" id="editPhone" placeholder="012 345 678" autocomplete="tel">
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="pem-field">
+                            <i class="fi fi-rr-calendar pem-field-icon"></i>
+                            <label for="editDob">ថ្ងៃខែឆ្នាំកំណើត</label>
+                            <input type="date" id="editDob">
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="pem-field textarea-field">
+                            <i class="fi fi-rr-document pem-field-icon"></i>
+                            <label for="editBio">ជីវប្រវត្តិ (About Me)</label>
+                            <textarea id="editBio" rows="3" placeholder="សរសេរអំពីខ្លួនឯង..."></textarea>
+                        </div>
+
+                        <!-- Info card -->
+                        <div class="pem-info-card">
+                            <i class="fi fi-rr-info"></i>
+                            <span>ដើម្បីផ្លាស់ប្ដូររូបភាព អ៊ីម៉ែល ឬពាក្យសម្ងាត់ សូមចូល <a href="/settings.html">ការកំណត់</a>។</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Footer ── -->
+                    <div class="pem-footer">
+                        <button class="pem-btn-cancel" data-bs-dismiss="modal">បោះបង់</button>
+                        <button class="pem-btn-save" id="saveProfileBtn" onclick="saveProfileEdit()">
+                            <i class="fi fi-rr-check"></i>រក្សាទុកព័ត៌មាន
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- ============ End Edit Profile Modal ============ -->
+
+        <!-- Footer -->
+        <!-- Standard System Footer -->
+        <footer class="app-footer">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    <span class="footer-kh-badge">KH</span>
+                    <span>ប្រព័ន្ធគ្រប់គ្រងសាលារៀនចំណេះទូទៅ ធី អាយ អេស</span>
+                </div>
+                <div class="footer-right">
+                    <span>រក្សាសិទ្ធិគ្រប់យ៉ាង ដោយ មាស មករា © 2026</span>
+                    <a href="https://t.me/m_makara_m" target="_blank" rel="noopener noreferrer" class="footer-telegram-link" title="Telegram: មាស មករា">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    </a>
+                    <span id="last-update-time" style="display: none;"></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="/js/core/firebase-config.js?v=20261021"></script>
+    <script src="/js/core/auth-check.js?v=20261021"></script>
+    <script src="/js/core/receiver-utils.js"></script>
+    <script src="/js/core/sidebar.js?v=20261021"></script>
+
+    <script src="/js/utils/khmer-font.js"></script>
+    <script src="/js/pages/system-updates.js"></script>
+    <script src="/js/pages/dashboard.js"></script>
+
+
+
+    <script src="/js/core/offline-manager.js"></script>
+
+    <script>
+        function updateWelcomeUser() {
+            try {
+                const sessionData = localStorage.getItem('userSession');
+                if (sessionData) {
+                    const user = JSON.parse(sessionData);
+                    document.getElementById('welcome-user-name').textContent = user.name || user.email?.split('@')[0] || 'អ្នកប្រើប្រាស់';
+                }
+            } catch (e) {
+                console.error('Error user session', e);
+            }
+        }
+
+        // Profile Display Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const data = window.currentUserProfileData;
+                if (!data) return;
+
+                const nameEl = document.getElementById('profilePageName');
+                const roleEl = document.getElementById('profilePageRole');
+                const bioEl = document.getElementById('profilePageBio');
+                const imgEl = document.getElementById('profilePageImage');
+
+                if (nameEl) nameEl.textContent = data.displayName || data.name || 'មិនមានឈ្មោះ (No Name)';
+                if (roleEl) roleEl.textContent = data.role || data.position || 'តួនាទីអ្នកប្រើប្រាស់ (User)';
+                if (bioEl) bioEl.textContent = data.bio || 'មិនមានការពិពណ៌នាអំពីខ្លួនឯងនៅឡើយទេ។ សូមចូលទៅកាន់ការកំណត់ដើម្បីបន្ថែមជីវប្រវត្តិ។';
+                
+                const statRole = document.getElementById('statRoleText');
+                const statDob = document.getElementById('statDobText');
+                const statUsage = document.getElementById('statUsageCount');
+
+                if (statRole) statRole.textContent = data.role || 'Admin';
+                if (statUsage) statUsage.textContent = data.loginCount || '15';
+                
+                if (statDob) {
+                    if (data.dob) {
+                        const dobDate = new Date(data.dob);
+                        const day = String(dobDate.getDate()).padStart(2, '0');
+                        const month = String(dobDate.getMonth() + 1).padStart(2, '0');
+                        const year = dobDate.getFullYear();
+                        statDob.textContent = `${day}/${month}/${year}`;
+
+                        // Check if today is birthday
+                        const today = new Date();
+                        if (today.getDate() === dobDate.getDate() && today.getMonth() === dobDate.getMonth()) {
+                            statDob.innerHTML = `<span class="text-danger fw-bold">${day}/${month}/${year}</span> 🎂`;
+                            setTimeout(() => {
+                                alert('🎉 រីករាយថ្ងៃខួបកំណើត! សូមជូនពរអោយមានសុខភាពល្អ និងជោគជ័យគ្រប់ភារកិច្ច! 🎉');
+                            }, 1500);
+                        }
+                    } else {
+                        statDob.textContent = 'មិនមាន (N/A)';
+                    }
+                }
+
+                if (imgEl && data.imageUrl && data.imageUrl !== 'undefined' && data.imageUrl !== 'null') {
+                    imgEl.src = data.imageUrl;
+                }
+            }, 1000); // Wait for auth check
+        });
+
+        // Both edit buttons redirect to settings.html for editing
+        document.querySelectorAll('.profile-avatar-edit-btn, .profile-edit-cover-btn').forEach(btn => {
+            btn.addEventListener('click', () => window.location.href = '/settings.html');
+        });
+
+        /** Open Edit Profile Modal and pre-fill with current data from Firebase */
+        function openEditProfileModal() {
+            // Try live Firebase data first, fallback to localStorage session
+            const data = window.currentUserProfileData || {};
+            const session = (() => { try { return JSON.parse(localStorage.getItem('userSession') || '{}'); } catch(e) { return {}; } })();
+
+            const name = data.displayName || data.name || session.name || 'User';
+            document.getElementById('editFullName').value = name;
+            document.getElementById('editPhone').value    = data.phone || '';
+            document.getElementById('editDob').value      = data.dob || '';
+            document.getElementById('editBio').value      = data.bio || '';
+
+            // Sync avatar in modal header
+            const pemAvatar = document.getElementById('pemAvatarImg');
+            const profileImg = document.getElementById('profilePageImage');
+            if (pemAvatar && profileImg && profileImg.src && !profileImg.src.includes('ui-avatars')) {
+                pemAvatar.src = profileImg.src;
+            } else if (pemAvatar) {
+                pemAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8a0e5b&color=fff&size=72`;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+            modal.show();
+        }
+
+        /** Save profile edits to Firebase Realtime Database */
+        async function saveProfileEdit() {
+            const btn = document.getElementById('saveProfileBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fi fi-rr-spinner fi-spin me-1"></i>កំពុងរក្សាទុក...';
+            btn.disabled = true;
+
+            try {
+                const user = firebase.auth().currentUser;
+                if (!user) throw new Error('No user logged in');
+
+                const updates = {
+                    displayName : document.getElementById('editFullName').value.trim(),
+                    phone       : document.getElementById('editPhone').value.trim(),
+                    dob         : document.getElementById('editDob').value,
+                    bio         : document.getElementById('editBio').value.trim(),
+                };
+
+                // Save to Firebase Realtime Database
+                await firebase.database().ref('users/' + user.uid).update(updates);
+
+                // Update Firebase Auth display name
+                if (updates.displayName) {
+                    await user.updateProfile({ displayName: updates.displayName });
+                }
+
+                // Refresh local cache
+                if (window.currentUserProfileData) {
+                    Object.assign(window.currentUserProfileData, updates);
+                }
+
+                // Update visible UI instantly
+                const nameEl = document.getElementById('profilePageName');
+                const bioEl  = document.getElementById('profilePageBio');
+                const dobEl  = document.getElementById('statDobText');
+                if (nameEl) nameEl.textContent = updates.displayName || nameEl.textContent;
+                if (bioEl  && updates.bio) bioEl.textContent = updates.bio;
+                if (dobEl  && updates.dob) {
+                    const d = new Date(updates.dob);
+                    dobEl.textContent = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+                }
+
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+
+                // Success toast
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed bottom-0 end-0 m-4 alert alert-success shadow-lg rounded-3 animate-up';
+                toast.style.cssText = 'z-index:9999; min-width:260px; font-size:0.9rem;';
+                toast.innerHTML = '<i class="fi fi-rr-check-circle me-2"></i>រក្សាទុករួចរាល់!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+
+            } catch (error) {
+                console.error('Profile save error:', error);
+                alert('មានបញ្ហា: ' + error.message);
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        function toggleDesktopSidebar() {
+            document.body.classList.toggle('sidebar-collapsed');
+        }
+
+        updateWelcomeUser();
+    </script>
+
+    <!-- System Updates Offcanvas (Side Panel) -->
+    <div class="offcanvas offcanvas-end border-0 shadow-lg" tabindex="-1" id="systemUpdatesOffcanvas"
+        aria-labelledby="systemUpdatesLabel" style="width: 400px; border-radius: 30px 0 0 30px;">
+        <div class="offcanvas-header border-bottom-0 pt-4 px-4">
+            <h5 class="offcanvas-title fw-bold text-pink-dark" id="systemUpdatesLabel">
+                <i class="fi fi-rr-bell me-2"></i>អ្វីដែលបាន Update ថ្មីៗ
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-4" id="notificationList">
+            <!-- Updates will be loaded here -->
+        </div>
+        <div class="p-4 border-top-0 text-center">
+            <small class="text-muted">ប្រព័ន្ធត្រូវបានរក្សាសុវត្ថិភាព និងធ្វើបច្ចុប្បន្នភាពជានិច្ច</small>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="km">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>បញ្ចូលពិន្ទុប្រចាំខែ - Monthly Score Entry</title>
+    <link rel="icon" type="image/jpeg" href="/img/1.jpg">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+
+    <link rel="stylesheet" href="/css/loader.css">
+    <script src="/js/core/loader-init.js"></script>
+    <script src="/js/core/system-core-standard.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Moul&family=Kantumruy+Pro:wght@100..900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/honor-roll-poster.css?v=20261021">
+
+    <style>
+        :root {
+            --primary-color: #8a0e5b;
+            --primary-light: #fdf2f8;
+            --primary-gradient: linear-gradient(135deg, #8a0e5b 0%, #b31d7e 100%);
+            --secondary-gradient: linear-gradient(135deg, #6e0b49 0%, #8a0e5b 100%);
+            --accent-color: #ffc107;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 10px 25px rgba(138, 14, 91, 0.05);
+            --shadow-lg: 0 20px 40px rgba(138, 14, 91, 0.08);
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+        }
+
+        body {
+            font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(252, 228, 236, 0.35) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(243, 229, 245, 0.35) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(255, 253, 240, 0.4) 0px, transparent 50%);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .khmer-muol { font-family: 'Moul', serif; font-weight: 400; }
+
+        /* Header Style Like Data Tracking */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 32px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            letter-spacing: -0.02em;
+        }
+
+        .btn-back-home {
+            background: rgba(138, 14, 91, 0.05);
+            color: var(--primary-color);
+            padding: 10px 22px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1.5px solid rgba(138, 14, 91, 0.1);
+        }
+
+        .btn-back-home:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateX(-4px);
+            box-shadow: 0 8px 20px rgba(138, 14, 91, 0.25);
+            border-color: transparent;
+        }
+
+        /* Premium Table Design */
+        .score-table-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-responsive {
+            max-height: calc(100vh - 400px);
+            overflow: auto;
+        }
+
+        .table-score thead th {
+            background: rgba(248, 250, 252, 0.9);
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            padding: 20px 14px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 2px solid #edf2f7;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .student-info-cell {
+            position: sticky;
+            left: 0;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+            min-width: 260px;
+            text-align: left !important;
+            padding-left: 25px !important;
+            border-right: 2px solid #edf2f7 !important;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-score tr:hover .student-info-cell {
+            background: var(--primary-light) !important;
+        }
+
+        .score-input {
+            width: 60px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1.5px solid #cbd5e1;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: white;
+        }
+
+        .score-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 5px rgba(138, 14, 91, 0.18);
+            outline: none;
+            transform: scale(1.18);
+            z-index: 5;
+            position: relative;
+            background: white;
+        }
+
+        /* Stats Cards */
+        .stat-card-premium {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card-premium:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(138, 14, 91, 0.2);
+        }
+
+        .stat-card-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-gradient);
+        }
+
+        .stat-card-premium.success::before { background: linear-gradient(180deg, #10b981 0%, #059669 100%); }
+        .stat-card-premium.warning::before { background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%); }
+        .stat-card-premium.info::before { background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%); }
+
+        .stat-card-premium .h3 {
+            font-family: 'Inter', 'Kantumruy Pro', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        /* Animation */
+        .animate-slide-up {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Badges */
+        .badge-score {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            min-width: 45px;
+        }
+        .badge-total { background: #f1f5f9; color: #475569; }
+        .badge-avg { background: #f0f9ff; color: #0369a1; }
+        .badge-rank { background: #fef3c7; color: #92400e; }
+
+        /* Row States */
+        .table-score tbody tr:hover td { background-color: var(--primary-light) !important; }
+        .table-score tbody tr:hover .student-info-cell { background-color: var(--primary-light) !important; }
+        .table-score tbody tr.completed td { background-color: #f0fdf4; }
+
+        /* Footer Actions */
+        .table-footer-actions {
+            background: #f8fafc;
+            padding: 20px 30px;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-premium {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(138, 14, 91, 0.25);
+        }
+        .btn-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(138, 14, 91, 0.35);
+            color: white;
+        }
+
+        /* Filters */
+        .filter-pill {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50px;
+            padding: 8px 20px;
+            border: 1.5px solid rgba(226, 232, 240, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .filter-pill:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(138, 14, 91, 0.12);
+        }
+        .filter-select {
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+        }
+        .filter-select::placeholder {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Filter Card Styling */
+        .filter-bar-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-md) !important;
+            border: 1px solid var(--glass-border) !important;
+            box-shadow: var(--shadow-md) !important;
+        }
+        .filter-input-group {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1.5px solid #e2e8f0;
+            background: rgba(248, 250, 252, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+        }
+        .filter-input-group:focus-within {
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(138, 14, 91, 0.12);
+        }
+        .filter-input-group .input-group-text {
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-muted);
+            padding-left: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .filter-input-group .form-select {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-weight: 600;
+            color: var(--text-main);
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade { animation: fadeIn 0.4s ease-in-out; }
+
+        @media (max-width: 1200px) {
+            
+            .main-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+                padding: 15px;
+            }
+            
+            .header-title { font-size: 1.1rem; }
+            
+            /* Bottom Nav for Mobile */
+            .mobile-bottom-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 75px;
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.5);
+                z-index: 1050;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                box-shadow: 0 -10px 30px rgba(138, 14, 91, 0.08);
+            }
+
+            .nav-item-mobile {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-muted);
+                text-decoration: none;
+                font-size: 0.65rem;
+                font-weight: 600;
+                transition: all 0.25s ease;
+                flex: 1;
+            }
+
+            .nav-item-mobile i {
+                font-size: 1.4rem;
+                margin-bottom: 4px;
+                transition: transform 0.2s ease;
+            }
+
+            .nav-item-mobile:hover i {
+                transform: translateY(-2px);
+            }
+
+            .nav-item-mobile.active {
+                color: var(--primary-color);
+            }
+
+            .nav-center-btn {
+                width: 60px;
+                height: 60px;
+                background: var(--primary-gradient);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                margin-top: -35px;
+                box-shadow: 0 8px 25px rgba(138, 14, 91, 0.35);
+                border: 4px solid var(--bg-color);
+                transition: all 0.25s ease;
+            }
+
+            .nav-center-btn:hover {
+                transform: scale(1.1);
+                box-shadow: 0 12px 30px rgba(138, 14, 91, 0.45);
+            }
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <!-- Dashboard Sidebar injected by sidebar.js?v=20261021 -->
+    </div>
+
+    <div id="main-content">
+        <!-- Studio Top Navigation Bar (Tabs & Action Buttons) -->
+        <div class="studio-top-nav-bar animate__animated animate__fadeIn">
+            <!-- Left Tabs: Poster vs Table -->
+            <div class="view-mode-tabs">
+                <button type="button" class="btn-view-tab active" id="tabViewPoster" onclick="window.switchScoreView('rank')">
+                    <i class="fi fi-rr-diploma fs-6 text-warning"></i>
+                    <span>ផ្ទាំងកិត្តិយស (Poster)</span>
+                </button>
+                <button type="button" class="btn-view-tab" id="tabViewTable" onclick="window.switchScoreView('table')">
+                    <i class="fi fi-rr-table fs-6"></i>
+                    <span>តារាងទិន្នន័យ (Table)</span>
+                </button>
+            </div>
+
+            <!-- Right Action Buttons -->
+            <div class="top-action-buttons">
+                <button type="button" class="btn-pill-save-share" onclick="window.saveAndSharePoster()">
+                    <i class="fi fi-rr-magic-wand"></i>
+                    <span>កែប្រែ & ចែករំលែក</span>
+                </button>
+                <button type="button" class="btn-pill-print-dark" onclick="window.printPosterA4()">
+                    <i class="fi fi-rr-print"></i>
+                    <span>បោះពុម្ព A4</span>
+                </button>
+                <button type="button" class="btn-pill-download-orange" onclick="window.downloadPosterPNG()">
+                    <i class="fi fi-rr-picture"></i>
+                    <span>ទាញយក PNG</span>
+                </button>
+                <button type="button" class="btn-pill-edit-student" onclick="window.openEditRankStudentsModal()">
+                    <i class="fi fi-rr-pencil text-primary"></i>
+                    <span>កែទិន្នន័យសិស្ស</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             HONOR ROLL POSTER STUDIO VIEW (ផ្ទាំងកិត្តិយសប្រចាំខែ A4)
+             ================================================================ -->
+        <div id="honorRollPosterView" class="animate__animated animate__fadeIn">
+            <!-- Filter & Toolbar Floating Bar -->
+            <div class="poster-filter-bar">
+                <div class="poster-filter-group">
+                    <!-- 1. ថ្នាក់រៀន -->
+                    <div class="poster-filter-item">
+                        <i class="fi fi-rr-home text-muted"></i>
+                        <span>ថ្នាក់រៀន:</span>
+                        <select id="posterClassFilter" class="poster-filter-select" onchange="window.onPosterClassChange(this.value)">
+                            <option value="all">ថ្នាក់រៀនទាំងអស់</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. ប្រចាំខែ/វគ្គ -->
+                    <div class="poster-filter-item">
+                        <i class="fi fi-rr-calendar text-muted"></i>
+                        <span>ប្រចាំខែ/វគ្គ:</span>
+                        <select id="posterMonthFilter" class="poster-filter-select" onchange="window.onPosterMonthChange(this.value)">
+                            <option value="1">ខែ មករា (January)</option>
+                            <option value="2">ខែ កុម្ភៈ (February)</option>
+                            <option value="3">ខែ មីនា (March)</option>
+                            <option value="4">ខែ មេសា (April)</option>
+                            <option value="5">ខែ ឧសភា (May)</option>
+                            <option value="6">ខែ មិថុនា (June)</option>
+                            <option value="7">ខែ កក្កដា (July)</option>
+                            <option value="8" selected>ខែ សីហា (August)</option>
+                            <option value="9">ខែ កញ្ញា (September)</option>
+                            <option value="10">ខែ តុលា (October)</option>
+                            <option value="11">ខែ វិច្ឆិកា (November)</option>
+                            <option value="12">ខែ ធ្នូ (December)</option>
+                        </select>
+                    </div>
+
+                    <!-- Badge: មិនមានតំណែងផ្ទេរទេ -->
+                    <div class="poster-badge-indicator">
+                        <span>○ មិនមានតំណែងផ្ទេរទេ</span>
+                    </div>
+
+                    <!-- 3. ឆ្នាំសិក្សា -->
+                    <div class="poster-filter-item">
+                        <i class="fi fi-rr-graduation-cap text-muted"></i>
+                        <span>ឆ្នាំសិក្សា:</span>
+                        <select id="posterYearFilter" class="poster-filter-select" onchange="window.onPosterYearChange(this.value)">
+                            <option value="២០២៤-២០២៥">ឆ្នាំសិក្សា ២០២៤-២០២៥</option>
+                            <option value="២០២៥-២០២៦">ឆ្នាំសិក្សា ២០២៥-២០២៦</option>
+                            <option value="២០២៦-២០២៧" selected>ឆ្នាំសិក្សា ២០២៦-២០២៧</option>
+                            <option value="២០២៧-២០២៨">ឆ្នាំសិក្សា ២០២៧-២០២៨</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Right Hint with Pulsing Green Dot -->
+                <div class="poster-hint-right">
+                    <span class="green-dot-pulse"></span>
+                    <span>ចុចលើប្រអប់រូបសិស្សនីមួយៗ ដើម្បីកែប្រែឈ្មោះ ឬរូបថតផ្ទាល់</span>
+                </div>
+            </div>
+
+            <!-- Main Studio 2-Column Layout -->
+            <div class="row g-4 mb-5">
+                <!-- ================= LEFT COLUMN: CONTROLS & SETTINGS ================= -->
+                <div class="col-lg-4">
+                    <!-- Card 1: រូបភាពផ្ទៃខាងក្រោយ (Poster Background) -->
+                    <div class="poster-control-card">
+                        <div class="poster-card-title">
+                            <span class="d-flex align-items-center">
+                                <i class="fi fi-rr-picture me-2 text-primary"></i>
+                                <span>រូបភាពផ្ទៃខាងក្រោយ (Poster Background)</span>
+                            </span>
+                            <a href="javascript:void(0)" class="poster-card-link" onclick="window.resetPosterBackground()">ពណ៌ផ្ទៃស្តង់ដារ</a>
+                        </div>
+                        <div class="poster-upload-box mb-3" onclick="document.getElementById('fileUploadPosterBg').click()">
+                            <input type="file" id="fileUploadPosterBg" class="d-none" accept="image/*" onchange="window.handlePosterBgUpload(this)">
+                            <div class="poster-upload-icon-circle">
+                                <i class="fi fi-rr-cloud-upload"></i>
+                            </div>
+                            <div class="poster-upload-title">ចុចនូវទីនេះដើម្បីប្ដូររូបភាព Background ផ្ទាំងកិត្តិយស</div>
+                            <div class="poster-upload-hint">គាំទ្រ JPG, PNG, WebP (ទំហំតិចជាង 5MB)</div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-muted mb-0" style="font-size: 11px;">កម្រិតភាពច្បាស់នៃផ្ទៃ (Opacity):</label>
+                                <span class="small fw-bold text-primary" id="posterBgOpacityVal" style="font-size: 11px;">100%</span>
+                            </div>
+                            <input type="range" class="form-range" min="10" max="100" value="100" id="posterBgOpacitySlider" oninput="window.setPosterBgOpacity(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Card 2: ត្រា & ហត្ថលេខា (Stamp & Signatures) -->
+                    <div class="poster-control-card">
+                        <div class="poster-card-title">
+                            <span class="d-flex align-items-center">
+                                <i class="fi fi-rr-pen-clip me-2 text-warning"></i>
+                                <span>ត្រា & ហត្ថលេខា (Stamp & Signatures)</span>
+                            </span>
+                            <span class="small text-muted fw-bold" style="font-size: 11px;">ផ្លូវការ</span>
+                        </div>
+
+                        <!-- Sub-card 1: Principal Stamp -->
+                        <div class="sub-stamp-card">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-dark" style="font-size: 11.5px;">
+                                    <span class="text-danger">●</span> ត្រា & ហត្ថលេខានាយក (Principal Stamp)
+                                </span>
+                                <span class="badge-stamp-tag">ប្រព័ន្ធកំណត់ដើម</span>
+                            </div>
+                            <div class="poster-upload-box py-2" onclick="document.getElementById('fileUploadPrincipalStamp').click()">
+                                <input type="file" id="fileUploadPrincipalStamp" class="d-none" accept="image/*" onchange="window.handlePrincipalStampUpload(this)">
+                                <div class="poster-upload-title" style="font-size: 11px;">
+                                    <i class="fi fi-rr-stamp text-danger me-1"></i>Upload ត្រា & ហត្ថលេខានាយក
+                                </div>
+                                <div class="poster-upload-hint" style="font-size: 10px;">គាំទ្រ PNG (Transparent), SVG, JPG (ទំហំតិចជាង 5MB)</div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-card 2: Teacher Signature -->
+                        <div class="sub-stamp-card mb-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-dark" style="font-size: 11.5px;">
+                                    <i class="fi fi-rr-pencil text-primary me-1"></i> ហត្ថលេខាគ្រូបន្ទុកថ្នាក់ (Teacher Signature)
+                                </span>
+                                <span class="badge-stamp-tag">បញ្ចូលដោយគ្រូ</span>
+                            </div>
+                            <div class="poster-upload-box py-2" onclick="document.getElementById('fileUploadTeacherSign').click()">
+                                <input type="file" id="fileUploadTeacherSign" class="d-none" accept="image/*" onchange="window.handleTeacherSignUpload(this)">
+                                <div class="poster-upload-title" style="font-size: 11px;">
+                                    <i class="fi fi-rr-pen-fancy text-primary me-1"></i>Upload ហត្ថលេខាផ្ទាល់ខ្លួន
+                                </div>
+                                <div class="poster-upload-hint" style="font-size: 10px;">គាំទ្រ PNG (Transparent), SVG, JPG (ទំហំតិចជាង 5MB)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: កាលបរិច្ឆេទ & ទីតាំង (Lunar & Solar Dates) -->
+                    <div class="poster-control-card">
+                        <div class="poster-card-title">
+                            <span class="d-flex align-items-center">
+                                <i class="fi fi-rr-calendar-lines me-2 text-info"></i>
+                                <span>កាលបរិច្ឆេទ & ទីតាំង (Lunar & Solar Dates)</span>
+                            </span>
+                            <a href="javascript:void(0)" class="poster-card-link" onclick="window.resetPosterDates()">តាម System ដើម</a>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-muted mb-0" style="font-size: 11px;">🌙 ថ្ងៃខែឆ្នាំ ចន្ទគតិ (Lunar Date):</label>
+                                <span class="small text-muted" style="font-size: 10.5px;">កែសម្រួលផ្ទាល់</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm border bg-light fw-bold" 
+                                   id="posterInputLunarDate" value="ថ្ងៃចន្ទ ៣រោច ខែស្រាពណ៍ ឆ្នាំរោង ឆស័ក ព.ស.២៥៧០">
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-muted mb-0" style="font-size: 11px;">☀️ ថ្ងៃខែឆ្នាំ សុរិយគតិ (Solar Date):</label>
+                                <span class="small text-muted" style="font-size: 10.5px;">កែសម្រួលផ្ទាល់</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm border bg-light fw-bold" 
+                                   id="posterInputSolarDate" value="រាជធានីភ្នំពេញ, ថ្ងៃទី២១ ខែសីហា ឆ្នាំ២០២៦">
+                        </div>
+                        <div class="p-2 rounded-3 bg-light border d-flex gap-2 align-items-start mt-2">
+                            <span class="text-warning fs-6">💡</span>
+                            <div class="text-muted" style="font-size: 10.5px; line-height: 1.35;">
+                                លោកអ្នកអាចកែសម្រួលទីកន្លែងនៃកាលបរិច្ឆេទនេះ ឬចុចលើកាលបរិច្ឆេទផ្ទាល់លើផ្ទាំង ដើម្បីកែសម្រួលភ្លាមៗ
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: កែសម្រួលទីតាំង & ទំហំ (Adjust Layout) -->
+                    <div class="poster-control-card">
+                        <div class="poster-card-title">
+                            <span class="d-flex align-items-center">
+                                <i class="fi fi-rr-arrows me-2 text-danger"></i>
+                                <span>កែសម្រួលទីតាំង & ទំហំ (Adjust Layout)</span>
+                            </span>
+                            <span class="badge bg-primary px-2 py-1 rounded-pill" style="font-size: 10px;">Pixel-Perfect</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark mb-1" style="font-size: 11px;">ជ្រើសរើសផ្នែកដែលត្រូវកែសម្រួលទីតាំង:</label>
+                            <select class="form-select form-select-sm border bg-light fw-bold text-dark" id="selectPosterLayer" onchange="window.onPosterLayerSelect(this.value)">
+                                <option value="titleYear">ចំណងជើង & ឆ្នាំសិក្សា (Title & Year)</option>
+                                <option value="nationalHeader">ក្បាលលិខិតជាតិ (MoEYS & Kingdom Header)</option>
+                                <option value="rank1">សិស្សឆ្នើមលេខ ១ (Rank 1)</option>
+                                <option value="rank23">សិស្សឆ្នើមលេខ ២ & ៣ (Rank 2 & 3)</option>
+                                <option value="rank45">សិស្សឆ្នើមលេខ ៤ & ៥ (Rank 4 & 5)</option>
+                                <option value="principalStamp">ត្រា & ហត្ថលេខានាយក (Principal Stamp)</option>
+                                <option value="teacherSign">ហត្ថលេខាគ្រូបន្ទុកថ្នាក់ & កាលបរិច្ឆេទ (Teacher Sign & Dates)</option>
+                            </select>
+                        </div>
+
+                        <!-- Stepper Buttons & D-Pad Controller -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-muted" style="font-size: 11px;">ជំហានកែរំកិល (Step):</span>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="step-btn-pill" data-step="1" onclick="window.setPosterStep(1)">1px</button>
+                                <button type="button" class="step-btn-pill active" data-step="5" onclick="window.setPosterStep(5)">5px</button>
+                                <button type="button" class="step-btn-pill" data-step="15" onclick="window.setPosterStep(15)">15px</button>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-5">
+                                <div class="dpad-container">
+                                    <div></div>
+                                    <button type="button" class="dpad-btn" onclick="window.nudgePosterLayer(0, -1)" title="ឡើងលើ">▲</button>
+                                    <div></div>
+                                    <button type="button" class="dpad-btn" onclick="window.nudgePosterLayer(-1, 0)" title="ទៅឆ្វេង">◀</button>
+                                    <button type="button" class="dpad-btn" onclick="window.nudgePosterLayer(0, 0)" title="កំណត់ដើម">0,0</button>
+                                    <button type="button" class="dpad-btn" onclick="window.nudgePosterLayer(1, 0)" title="ទៅស្តាំ">▶</button>
+                                    <div></div>
+                                    <button type="button" class="dpad-btn" onclick="window.nudgePosterLayer(0, 1)" title="ចុះក្រោម">▼</button>
+                                    <div></div>
+                                </div>
+                            </div>
+                            <div class="col-7">
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between small text-muted" style="font-size: 10px;">
+                                        <span>រំកិលឆ្វេង/ស្តាំ (X):</span>
+                                        <span class="fw-bold text-dark" id="posterValX">0px</span>
+                                    </div>
+                                    <input type="range" class="form-range" min="-150" max="150" value="0" id="posterSliderX" oninput="window.onPosterOffsetInput('x', this.value)">
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between small text-muted" style="font-size: 10px;">
+                                        <span>រំកិលលើ/ក្រោម (Y):</span>
+                                        <span class="fw-bold text-dark" id="posterValY">0px</span>
+                                    </div>
+                                    <input type="range" class="form-range" min="-150" max="150" value="0" id="posterSliderY" oninput="window.onPosterOffsetInput('y', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="small text-muted text-center mb-3" style="font-size: 10.5px;">* ប្រើ D-Pad ឬ Slider ដើម្បីរំកិលទីតាំង</div>
+
+                        <!-- Scale Slider -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-bold text-dark" style="font-size: 11px;">
+                                    <i class="fi fi-rr-search me-1"></i>ទំហំពង្រីក/បង្រួម (Scale):
+                                </span>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="step-btn-pill" onclick="window.setPosterLayerScale(75)">75%</button>
+                                    <button type="button" class="step-btn-pill active" onclick="window.setPosterLayerScale(100)">100%</button>
+                                    <button type="button" class="step-btn-pill" onclick="window.setPosterLayerScale(125)">125%</button>
+                                    <button type="button" class="step-btn-pill" onclick="window.setPosterLayerScale(150)">150%</button>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="small text-muted" style="font-size: 10px;">50%</span>
+                                <input type="range" class="form-range flex-grow-1" min="50" max="200" value="100" id="posterSliderScale" oninput="window.setPosterLayerScale(this.value)">
+                                <span class="small fw-bold text-primary" id="posterValScale" style="font-size: 11px;">100%</span>
+                            </div>
+                        </div>
+
+                        <!-- Typography & Color Settings -->
+                        <div class="p-2 rounded-3 bg-light border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-dark" style="font-size: 11.5px;">
+                                    <i class="fi fi-rr-text me-1 text-primary"></i>ពុម្ពអក្សរ & ពណ៌ (Font & Color):
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 9.5px;">អក្សរ (Text)</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted" style="font-size: 10.5px;">✍️ ពុម្ពអក្សរ (Font Family):</span>
+                                <span class="small text-primary fw-bold" style="font-size: 10.5px;">ពុម្ពដើម (Default)</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <button type="button" class="font-chip active" data-font="default" onclick="window.setPosterFont('default')">ដើម</button>
+                                <button type="button" class="font-chip" data-font="moul" onclick="window.setPosterFont('moul')">មូល</button>
+                                <button type="button" class="font-chip" data-font="bali" onclick="window.setPosterFont('bali')">បាលី</button>
+                                <button type="button" class="font-chip" data-font="battambang" onclick="window.setPosterFont('battambang')">បាត់ដំបង</button>
+                                <button type="button" class="font-chip" data-font="angkor" onclick="window.setPosterFont('angkor')">អង្គរម្យ</button>
+                                <button type="button" class="font-chip" data-font="slanted" onclick="window.setPosterFont('slanted')">ខ្មែររេ</button>
+                                <button type="button" class="font-chip" data-font="prasat" onclick="window.setPosterFont('prasat')">ប្រាសាទ</button>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted" style="font-size: 10.5px;">ពណ៌អក្សរ (Text Color):</span>
+                                <span class="small text-danger fw-bold" style="font-size: 10.5px;">ពណ៌ដើម</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="color-circle active" style="background: #0f172a;" data-color="#0f172a" onclick="window.setPosterTextColor('#0f172a')"></span>
+                                <span class="color-circle" style="background: #dc2626;" data-color="#dc2626" onclick="window.setPosterTextColor('#dc2626')"></span>
+                                <span class="color-circle" style="background: #1e3a8a;" data-color="#1e3a8a" onclick="window.setPosterTextColor('#1e3a8a')"></span>
+                                <span class="color-circle" style="background: #0284c7;" data-color="#0284c7" onclick="window.setPosterTextColor('#0284c7')"></span>
+                                <span class="color-circle" style="background: #16a34a;" data-color="#16a34a" onclick="window.setPosterTextColor('#16a34a')"></span>
+                                <span class="color-circle" style="background: #d97706;" data-color="#d97706" onclick="window.setPosterTextColor('#d97706')"></span>
+                                <span class="color-circle" style="background: #020617;" data-color="#020617" onclick="window.setPosterTextColor('#020617')"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= RIGHT COLUMN: POSTER CANVAS STAGE ================= -->
+                <div class="col-lg-8">
+                    <div class="poster-stage-container">
+                        <!-- Stage Header Bar (A4 Portrait, Zoom 75%, 85%, 100%) -->
+                        <div class="poster-stage-header">
+                            <div class="d-flex align-items-center gap-2 small fw-bold text-dark">
+                                <i class="fi fi-rr-document text-primary"></i>
+                                <span>ផ្ទាំងទម្រង់ A4 Portrait (210 × 297 mm)</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="small text-muted fw-bold" style="font-size: 11px;">ទំហំមើល:</span>
+                                <div class="zoom-toggle-group">
+                                    <button type="button" class="btn-zoom" data-zoom="75" onclick="window.setPosterZoom(75)">75%</button>
+                                    <button type="button" class="btn-zoom active" data-zoom="85" onclick="window.setPosterZoom(85)">85%</button>
+                                    <button type="button" class="btn-zoom" data-zoom="100" onclick="window.setPosterZoom(100)">100%</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- A4 Poster Viewport -->
+                        <div class="a4-poster-viewport zoom-85" id="a4PosterViewport">
+                            <div class="a4-poster-sheet" id="a4PosterSheet">
+                                <div class="poster-bg-overlay" id="posterBgOverlay"></div>
+
+                                <div class="poster-content-layer">
+                                    <!-- Top Row: MoEYS & Kingdom Header -->
+                                    <div class="movable-layer poster-top-row" id="posterLayer-nationalHeader">
+                                        <!-- Ministry of Education -->
+                                        <div class="poster-moeys-box">
+                                            <div class="poster-moeys-title">មន្ទីរអប់រំ យុវជន និងកីឡា រាជធានីភ្នំពេញ</div>
+                                            <div class="poster-moeys-sub">ការិយាល័យ អ យក នៃរដ្ឋបាលស្រុក</div>
+                                            <div class="poster-moeys-phone">+855 10 688 800</div>
+                                        </div>
+
+                                        <!-- Kingdom Header -->
+                                        <div class="poster-kingdom-box">
+                                            <div class="poster-kingdom-title">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                                            <div class="poster-kingdom-sub">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                                            <div class="my-1">
+                                                <svg width="86" height="10" viewBox="0 0 100 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M5 6 C 25 1, 35 11, 50 6 C 65 1, 75 11, 95 6" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round"/>
+                                                    <circle cx="50" cy="6" r="3" fill="#1e3a8a"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Main Title & Academic Year -->
+                                    <div class="movable-layer poster-main-title-block" id="posterLayer-titleYear">
+                                        <div class="poster-main-title" id="posterMonthTitleText">
+                                            តារាងកិត្តិយសប្រចាំខែ <span id="posterMonthNameSpan">សីហា</span>
+                                        </div>
+                                        <div class="poster-academic-year" id="posterAcademicYearText">
+                                            ឆ្នាំសិក្សា ២០២៦-២០២៧
+                                        </div>
+                                    </div>
+
+                                    <!-- Top 5 Students Podium Layout -->
+                                    <div class="ranks-podium-grid">
+                                        <!-- Rank 1 (Top Center) -->
+                                        <div class="movable-layer rank-row-top" id="posterLayer-rank1">
+                                            <div class="student-rank-card" onclick="window.openEditRankStudent(1)" title="ចុចដើម្បីកែឈ្មោះ ឬរូបថត">
+                                                <div class="rank-number-khmer rank-1-num">១</div>
+                                                <div class="rank-photo-frame rank-1-frame">
+                                                    <img id="rankPhoto-1" src="" class="rank-student-img" alt="Rank 1">
+                                                </div>
+                                                <div class="rank-name-pill" id="rankName-1">សិស្សឆ្នើមលេខ ១</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Rank 2 & 3 (Middle Row) -->
+                                        <div class="movable-layer rank-row-split" id="posterLayer-rank23">
+                                            <!-- Rank 2 (Left) -->
+                                            <div class="student-rank-card" onclick="window.openEditRankStudent(2)" title="ចុចដើម្បីកែឈ្មោះ ឬរូបថត">
+                                                <div class="rank-number-khmer">២</div>
+                                                <div class="rank-photo-frame rank-standard-frame">
+                                                    <img id="rankPhoto-2" src="" class="rank-student-img" alt="Rank 2">
+                                                </div>
+                                                <div class="rank-name-pill" id="rankName-2">សិស្សឆ្នើមលេខ ២</div>
+                                            </div>
+
+                                            <!-- Rank 3 (Right) -->
+                                            <div class="student-rank-card" onclick="window.openEditRankStudent(3)" title="ចុចដើម្បីកែឈ្មោះ ឬរូបថត">
+                                                <div class="rank-number-khmer">៣</div>
+                                                <div class="rank-photo-frame rank-standard-frame">
+                                                    <img id="rankPhoto-3" src="" class="rank-student-img" alt="Rank 3">
+                                                </div>
+                                                <div class="rank-name-pill" id="rankName-3">សិស្សឆ្នើមលេខ ៣</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Rank 4 & 5 (Bottom Row) -->
+                                        <div class="movable-layer rank-row-split" id="posterLayer-rank45">
+                                            <!-- Rank 4 (Left) -->
+                                            <div class="student-rank-card" onclick="window.openEditRankStudent(4)" title="ចុចដើម្បីកែឈ្មោះ ឬរូបថត">
+                                                <div class="rank-number-khmer">៤</div>
+                                                <div class="rank-photo-frame rank-standard-frame">
+                                                    <img id="rankPhoto-4" src="" class="rank-student-img" alt="Rank 4">
+                                                </div>
+                                                <div class="rank-name-pill" id="rankName-4">សិស្សឆ្នើមលេខ ៤</div>
+                                            </div>
+
+                                            <!-- Rank 5 (Right) -->
+                                            <div class="student-rank-card" onclick="window.openEditRankStudent(5)" title="ចុចដើម្បីកែឈ្មោះ ឬរូបថត">
+                                                <div class="rank-number-khmer">៥</div>
+                                                <div class="rank-photo-frame rank-standard-frame">
+                                                    <img id="rankPhoto-5" src="" class="rank-student-img" alt="Rank 5">
+                                                </div>
+                                                <div class="rank-name-pill" id="rankName-5">សិស្សឆ្នើមលេខ ៥</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Row: Stamp, Signatures & Dates -->
+                                    <div class="poster-bottom-row">
+                                        <!-- Principal Authority & Stamp -->
+                                        <div class="movable-layer poster-principal-box" id="posterLayer-principalStamp">
+                                            <div class="poster-auth-title">បានឃើញនិងឯកភាព</div>
+                                            <div class="poster-auth-title mb-1">នាយកសាលា</div>
+                                            <div class="poster-stamp-wrapper" id="posterStampContainer">
+                                                <!-- Injected by JS -->
+                                            </div>
+                                        </div>
+
+                                        <!-- Dates & Teacher Signature -->
+                                        <div class="movable-layer poster-teacher-box" id="posterLayer-teacherSign">
+                                            <div class="poster-date-lunar" id="posterLunarDateText">ថ្ងៃចន្ទ ៣រោច ខែស្រាពណ៍ ឆ្នាំរោង ឆស័ក ព.ស.២៥៧០</div>
+                                            <div class="poster-date-solar" id="posterSolarDateText">រាជធានីភ្នំពេញ, ថ្ងៃទី២១ ខែសីហា ឆ្នាំ២០២៦</div>
+                                            <div class="poster-auth-title">គ្រូបន្ទុកថ្នាក់</div>
+                                            <div class="poster-teacher-signature-box" id="posterTeacherSignContainer">
+                                                <!-- Injected by JS -->
+                                            </div>
+                                            <div class="poster-teacher-name">គ្រូបន្ទុកថ្នាក់</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             MONTHLY SCORE TABLE VIEW (តារាងទិន្នន័យពិន្ទុ)
+             ================================================================ -->
+        <div id="monthlyScoreTableView" style="display: none;">
+            <!-- New Premium Header -->
+            <div class="main-header animate__animated animate__fadeInDown">
+            <div class="d-flex align-items-center gap-4">
+                <a href="/index.html" class="btn-back-home">
+                    <i class="fi fi-rr-home"></i> ត្រឡប់ទៅដើម
+                </a>
+                <div class="header-title khmer-muol">
+                    <i class="fi fi-rr-edit-alt me-2"></i> បញ្ចូលពិន្ទុប្រចាំខែ
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3 align-items-center">
+                <div class="filter-pill">
+                    <i class="fi fi-rr-calendar-event text-muted"></i>
+                    <select id="scoreMonthSelect" class="filter-select">
+                        <option value="1">មករា (Jan)</option>
+                        <option value="2">កុម្ភៈ (Feb)</option>
+                        <option value="3">មីនា (Mar)</option>
+                        <option value="4">មេសា (Apr)</option>
+                        <option value="5">ឧសភា (May)</option>
+                        <option value="6">មិថុនា (Jun)</option>
+                        <option value="7">កក្កដា (Jul)</option>
+                        <option value="8">សីហា (Aug)</option>
+                        <option value="9">កញ្ញា (Sep)</option>
+                        <option value="10">តុលា (Oct)</option>
+                        <option value="11">វិច្ឆិកា (Nov)</option>
+                        <option value="12">ធ្នូ (Dec)</option>
+                    </select>
+                    <select id="scoreYearSelect" class="filter-select">
+                    </select>
+                </div>
+                
+                <div class="filter-pill">
+                    <i class="fi fi-rr-search text-muted"></i>
+                    <input type="text" id="searchStudent" class="filter-select" style="width: 200px;" placeholder="ស្វែងរកសិស្ស..." onkeyup="renderTable()">
+                </div>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Filter Bar -->
+        <div class="card filter-bar-card mb-4 p-3 animate__animated animate__fadeIn">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase mb-1">គ្រូបន្ទុកថ្នាក់ (Teacher)</label>
+                    <div class="filter-input-group">
+                        <span class="input-group-text"><i class="fi fi-rr-user-trust"></i></span>
+                        <select id="filterTeacher" class="form-select" onchange="renderTable()">
+                            <option value="all">គ្រូទាំងអស់ (All Teachers)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase mb-1">ម៉ោងសិក្សា (Study Time)</label>
+                    <div class="filter-input-group">
+                        <span class="input-group-text"><i class="fi fi-rr-clock"></i></span>
+                        <select id="filterTime" class="form-select" onchange="renderTable()">
+                            <option value="all">គ្រប់ម៉ោង (All Times)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase mb-1">កម្មវិធីសិក្សា (Program)</label>
+                    <div class="filter-input-group">
+                        <span class="input-group-text"><i class="fi fi-rr-notebook"></i></span>
+                        <select id="filterProgram" class="form-select" onchange="renderTable()">
+                            <option value="all">គ្រប់កម្មវិធី (All Programs)</option>
+                            <option value="chinese-fulltime">ចិនពេញម៉ោង (Chinese Full-time)</option>
+                            <option value="general">ចំណេះដឹងទូទៅ (General Knowledge)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-premium w-100 rounded-pill py-2 fw-bold" onclick="loadStudents()">
+                        <i class="fi fi-rr-refresh me-2"></i> ទាញទិន្នន័យ (Reload)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card-premium animate__animated animate__fadeIn">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">សិស្សសរុប</div>
+                    <div class="h3 fw-bold mb-0" id="statTotalStudents">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card-premium success animate__animated animate__fadeIn" style="animation-delay: 0.1s;">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">បញ្ចូលរួច</div>
+                    <div class="h3 fw-bold mb-0 text-success" id="statCompleted">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card-premium warning animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">នៅខ្វះ</div>
+                    <div class="h3 fw-bold mb-0 text-warning" id="statRemaining">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card-premium info animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">វឌ្ឍនភាព</div>
+                    <div class="h3 fw-bold mb-0 text-primary" id="statPercent">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Table Card -->
+        <div class="score-table-card animate-slide" style="animation-delay: 0.2s;">
+            <div class="table-responsive">
+                <table class="table table-score" id="scoreEntryTable">
+                    <thead>
+                        <tr>
+                            <th class="student-info-cell">ព័ត៌មានសិស្ស (Student Info)</th>
+                            <th title="Week 01">សប្តាហ៍១</th>
+                            <th title="Week 02">សប្តាហ៍២</th>
+                            <th title="Monthly Test">ប្រចាំខែ</th>
+                            <th title="Listening">ស្តាប់</th>
+                            <th title="Speaking">និយាយ</th>
+                            <th title="Reading">អាន</th>
+                            <th title="Ethics">សុជីវធម៌</th>
+                            <th title="Attendance">អវត្តមាន</th>
+                            <th title="Homework">កិច្ចការ</th>
+                            <th title="Singing">ច្រៀង</th>
+                            <th title="HSK">HSK</th>
+                            <th>-</th>
+                            <th>-</th>
+                            <th>សរុប</th>
+                            <th>មធ្យម</th>
+                            <th>និទ្ទេស</th>
+                            <th>ចំណាត់ថ្នាក់</th>
+                            <th>កាលបរិច្ឆេទ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreTableBody">
+                        <!-- JS will populate -->
+                        <tr>
+                            <td colspan="16" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="mt-2 text-muted">កំពុងទាញយកទិន្នន័យ...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-footer-actions">
+                <div class="text-muted small">
+                    <i class="fi fi-rr-info me-1"></i> លោកគ្រូអ្នកគ្រូអាចចុច <b>Enter</b> ឬ <b>Arrow Keys</b> ដើម្បីផ្លាស់ទីចន្លោះប្រអប់ពិន្ទុ។
+                </div>
+                <div class="d-flex gap-3">
+
+                    <button class="btn btn-premium rounded-pill px-5 fw-bold" onclick="saveAllScores()">
+                        <i class="fi fi-rr-disk me-2"></i> រក្សាទុកពិន្ទុទាំងអស់ (Save All)
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div> <!-- /monthlyScoreTableView -->
+
+        <!-- Mobile Bottom Nav -->
+        <div class="mobile-bottom-nav">
+            <a href="/index.html" class="nav-item-mobile">
+                <i class="fi fi-rr-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="teacher-portal.html" class="nav-item-mobile">
+                <i class="fi fi-rr-user"></i>
+                <span>Portal</span>
+            </a>
+            <button class="nav-item-mobile nav-center-btn" onclick="saveAllScores()">
+                <i class="fi fi-rr-disk"></i>
+            </button>
+
+            <button class="nav-item-mobile border-0 bg-transparent ink-none" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+                <i class="fi fi-rr-arrow-small-up"></i>
+                <span>Top</span>
+            </button>
+        </div>
+            <!-- Standard System Footer -->
+        <footer class="app-footer">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    <span class="footer-kh-badge">KH</span>
+                    <span>ប្រព័ន្ធគ្រប់គ្រងសាលារៀនចំណេះទូទៅ ធី អាយ អេស</span>
+                </div>
+                <div class="footer-right">
+                    <span>រក្សាសិទ្ធិគ្រប់យ៉ាង ដោយ មាស មករា © 2026</span>
+                    <a href="https://t.me/m_makara_m" target="_blank" rel="noopener noreferrer" class="footer-telegram-link" title="Telegram: មាស មករា">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    </a>
+                    <span id="last-update-time" style="display: none;"></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase & Core Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    
+    <script src="/js/core/firebase-config.js?v=20261021"></script>
+    <script src="/js/core/auth-check.js?v=20261021"></script>
+    <script src="/js/core/sidebar.js?v=20261021"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    
+    <!-- html2canvas for 300 DPI High-Res Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="/js/pages/monthly-score.js"></script>
+    <script src="/js/pages/honor-roll-poster.js?v=20261021"></script>
+
+</body>
+
+</html>

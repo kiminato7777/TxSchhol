@@ -1,0 +1,1812 @@
+/* ==========================================================================
+   Official Cambodian MoEYS Student ID Card Studio (css/student-card-studio.css)
+   Pixel-accurate styling matching the Official Ministry of Education Card Studio
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700;900&family=Kantumruy+Pro:wght@400;600;700;900&family=Ma+Shan+Zheng&family=Moul&family=Noto+Sans+SC:wght@400;700;900&family=Poppins:wght@400;600;700;900&family=Siemreap&family=ZCOOL+QingKe+HuangYou&display=swap');
+
+:root {
+    --moeys-primary: #153e75;
+    --moeys-green: #1b5e20;
+    --moeys-red: #c62828;
+    --moeys-gold: #b45309;
+    --studio-bg: #f8fafc;
+    --studio-card-bg: #ffffff;
+    --studio-border: #e2e8f0;
+}
+
+/* Studio Main Container */
+.official-card-studio-wrapper {
+    background-color: var(--studio-bg);
+    border-radius: 20px;
+    padding: 20px;
+    font-family: 'Kantumruy Pro', 'Khmer OS Battambang', sans-serif;
+}
+
+/* Studio Topbar */
+.studio-topbar {
+    background: white;
+    border-radius: 18px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--studio-border);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+.studio-title-badge {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.studio-title-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+}
+
+.studio-main-title {
+    font-family: 'Moul', 'Khmer OS Muol Light', serif;
+    font-size: 1.15rem;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+
+.studio-subtitle {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Topbar Dropdown Action Buttons */
+.btn-export-img {
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-export-img:hover, .btn-export-img:focus {
+    background-color: #059669;
+    color: white;
+}
+
+.btn-export-pdf {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-export-pdf:hover, .btn-export-pdf:focus {
+    background-color: #dc2626;
+    color: white;
+}
+
+.btn-export-print {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-export-print:hover, .btn-export-print:focus {
+    background-color: #1d4ed8;
+    color: white;
+}
+
+/* Studio Left Panels */
+.studio-control-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--studio-border);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.studio-card-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.studio-count-badge {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Studio 3 Category Segmented Controller */
+.studio-category-pills {
+    margin-bottom: 12px;
+}
+
+.studio-category-pills .btn-group {
+    background: #f1f5f9;
+    border-radius: 14px;
+    padding: 3px;
+    border: 1px solid #e2e8f0;
+}
+
+.studio-cat-btn {
+    border-radius: 11px !important;
+    border: none !important;
+    padding: 7px 4px;
+    font-size: 0.75rem;
+    color: #475569;
+    background: transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    line-height: 1.2;
+}
+
+.studio-cat-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.studio-cat-btn.active#studioCatBtn-chinese {
+    background: linear-gradient(135deg, #e11d48, #be123c) !important;
+    color: white !important;
+    box-shadow: 0 3px 10px rgba(225, 29, 72, 0.28);
+}
+
+.studio-cat-btn.active#studioCatBtn-parttime {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: white !important;
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.28);
+}
+
+.studio-cat-btn.active#studioCatBtn-trilingual {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+    color: white !important;
+    box-shadow: 0 3px 10px rgba(139, 92, 246, 0.28);
+}
+
+.studio-cat-btn .badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+}
+
+.class-action-link {
+    font-size: 0.78rem;
+    color: #2563eb;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.class-action-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* Upload Dropzone Boxes */
+.studio-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+.studio-upload-box:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+.studio-upload-icon {
+    font-size: 26px;
+    color: #3b82f6;
+    margin-bottom: 6px;
+}
+.studio-upload-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 2px;
+}
+.studio-upload-hint {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Theme Selection Cards */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.theme-card-option {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 72px;
+}
+.theme-card-option:hover {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+.theme-card-option.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.15);
+}
+.theme-option-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.theme-option-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-top: 4px;
+}
+
+/* ==========================================================================
+   OFFICIAL STUDENT ID CARD PREVIEW (Right Column)
+   ========================================================================== */
+.card-canvas-stage {
+    background-color: #ffffff;
+    border-radius: 20px;
+    border: 1px solid var(--studio-border);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    padding: 30px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 600px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* The Official MoEYS ID Card */
+.moeys-id-card {
+    width: 350px;
+    height: 535px;
+    background-color: #ffffff;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    border-radius: 14px;
+    border: 3px double var(--card-border-color, #153e75);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: relative;
+    padding: 16px 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: 'Kantumruy Pro', 'Khmer OS Battambang', sans-serif;
+    color: #0f172a;
+    overflow: hidden;
+    user-select: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.moeys-id-card.no-border {
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dragging Hover & State */
+.movable-layer {
+    transition: transform 0.15s ease;
+    transform-origin: center center;
+    position: relative;
+}
+
+.drag-mode-active .movable-layer {
+    cursor: move !important;
+}
+.drag-mode-active .movable-layer:hover {
+    outline: 2px dashed #3b82f6 !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+}
+.drag-mode-active .movable-layer.is-dragging {
+    outline: 2px solid #2563eb !important;
+    opacity: 0.85;
+}
+
+/* Card Header Section */
+.card-top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.card-school-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.card-national-header {
+    text-align: center;
+    flex-grow: 1;
+}
+
+.card-national-title {
+    font-family: 'Moul', 'Khmer OS Muol Light', serif;
+    font-size: 11px;
+    color: var(--card-accent-color, #153e75);
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
+}
+
+.card-national-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 2px 0 0 0;
+    color: var(--card-accent-color, #153e75);
+    font-size: 8px;
+}
+
+.card-national-divider::before, .card-national-divider::after {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.7;
+}
+
+/* Card Titles */
+.card-main-title {
+    font-family: 'Moul', 'Khmer OS Muol Light', serif;
+    font-size: 19px;
+    color: var(--card-title-color, #1b5e20);
+    text-align: center;
+    margin: 2px 0 0 0;
+    letter-spacing: 0.4px;
+    line-height: 1.2;
+}
+
+.card-phone-school {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--card-phone-color, #c62828);
+    margin: 1px 0 0 0;
+    letter-spacing: 0.5px;
+}
+
+.card-student-id-badge {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--card-id-color, #c62828);
+    margin: 2px 0 6px 0;
+    letter-spacing: 0.4px;
+}
+
+/* Card Details Table / Rows */
+.card-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.card-details-table td {
+    padding: 2.2px 0;
+    vertical-align: top;
+}
+
+.card-detail-label {
+    white-space: nowrap;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.card-detail-val {
+    color: #1e293b;
+}
+
+/* Academic Year Line */
+.card-academic-year {
+    text-align: center;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--card-year-color, #c62828);
+    margin: 4px 0 4px 0;
+}
+
+/* Bottom Split: Photo & Stamp/Dates */
+.card-bottom-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    margin-top: auto;
+}
+
+/* 4x6 Photo Frame */
+.card-photo-frame {
+    width: 98px;
+    height: 134px;
+    border-radius: 6px;
+    border: 2px solid var(--card-accent-color, #153e75);
+    background-color: #e0f2fe;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.card-student-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Authority & Stamp Box */
+.card-authority-box {
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+    min-height: 134px;
+}
+
+.card-lunar-date {
+    font-size: 8.5px;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.card-solar-date {
+    font-size: 9px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 1px 0 2px 0;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.card-authority-title {
+    font-family: 'Moul', 'Khmer OS Muol Light', serif;
+    font-size: 11px;
+    color: var(--card-accent-color, #153e75);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* Official Stamp & Signature Overlay */
+.card-stamp-wrapper {
+    position: relative;
+    width: 95px;
+    height: 95px;
+    margin-top: -12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.official-red-stamp {
+    width: 86px;
+    height: 86px;
+    object-fit: contain;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0.95;
+}
+
+.official-blue-signature {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-6deg);
+    width: 95px;
+    pointer-events: none;
+    z-index: 2;
+    filter: drop-shadow(0 1px 2px rgba(21, 101, 192, 0.4));
+}
+
+/* ==========================================================================
+   POSITION & SCALE ADJUSTMENT CONTROLLER (D-Pad & Sliders)
+   ========================================================================== */
+.adjust-position-panel {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 20px;
+    margin-top: 18px;
+    border: 1px solid var(--studio-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.adjust-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.drag-toggle-btn {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.drag-toggle-btn.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* D-Pad Controller */
+.dpad-container {
+    width: 104px;
+    height: 104px;
+    position: relative;
+    background: #f1f5f9;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dpad-btn {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.dpad-btn:hover {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+.dpad-btn:active {
+    transform: scale(0.92);
+}
+
+.dpad-btn-up { top: 4px; left: 36px; }
+.dpad-btn-down { bottom: 4px; left: 36px; }
+.dpad-btn-left { left: 4px; top: 36px; }
+.dpad-btn-right { right: 4px; top: 36px; }
+.dpad-btn-center {
+    width: 26px;
+    height: 26px;
+    font-size: 9px;
+    font-weight: 800;
+    border-radius: 50%;
+    background: #f8fafc;
+    color: #6366f1;
+}
+
+/* Step Buttons */
+.step-btn-group {
+    display: flex;
+    gap: 4px;
+}
+.step-btn {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+}
+.step-btn.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* Scale Presets */
+.scale-presets {
+    display: flex;
+    gap: 4px;
+}
+.scale-preset-btn {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+}
+.scale-preset-btn.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* Hint Box */
+.adjust-hint-box {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: #166534;
+    font-weight: 600;
+    margin-top: 14px;
+}
+
+/* Save Layout Button */
+.btn-save-layout {
+    background-color: #059669;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 22px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    transition: all 0.2s ease;
+}
+.btn-save-layout:hover {
+    background-color: #047857;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-reset-layout {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.btn-reset-layout:hover {
+    color: #0f172a;
+}
+
+/* ==========================================================================
+   STUDENT CATEGORY TABS / PILLS (Chinese Full-Time, Part-Time, Trilingual)
+   ========================================================================== */
+.studio-category-tabs-container {
+    width: 100%;
+}
+
+.studio-category-pills {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+}
+
+.studio-cat-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    position: relative;
+    user-select: none;
+}
+
+.studio-cat-btn:hover {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.studio-cat-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.studio-cat-name {
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.studio-cat-count {
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.07);
+    color: inherit;
+    line-height: 1.2;
+    transition: all 0.22s ease;
+}
+
+/* Chinese Full-Time Active */
+.studio-cat-btn.cat-chinese.active {
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+    color: #ffffff;
+    border-color: #be123c;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.32);
+    transform: translateY(-1px);
+}
+.studio-cat-btn.cat-chinese.active .studio-cat-count {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+/* Part-Time Active */
+.studio-cat-btn.cat-parttime.active {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: #ffffff;
+    border-color: #b45309;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.32);
+    transform: translateY(-1px);
+}
+.studio-cat-btn.cat-parttime.active .studio-cat-count {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+/* Trilingual / General Knowledge Active */
+.studio-cat-btn.cat-trilingual.active {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.32);
+    transform: translateY(-1px);
+}
+.studio-cat-btn.cat-trilingual.active .studio-cat-count {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+@media (max-width: 576px) {
+    .studio-cat-name {
+        font-size: 10px;
+    }
+    .studio-cat-btn {
+        padding: 6px 2px;
+    }
+}
+
+/* ==========================================================================
+   AI IMAGE STUDIO STYLES
+   ========================================================================== */
+.studio-ai-card {
+    background: linear-gradient(180deg, #ffffff 0%, #fdf4ff 100%);
+    border: 1px solid #f0abfc;
+    box-shadow: 0 4px 16px rgba(192, 38, 211, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.studio-ai-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8a0e5b, #c026d3, #6366f1, #3b82f6);
+}
+
+.ai-badge-pill {
+    background: linear-gradient(135deg, #c026d3, #8a0e5b);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(192, 38, 211, 0.3);
+    display: inline-flex;
+    align-items: center;
+}
+
+.ai-preset-chip {
+    border: 1px solid #e9d5ff;
+    background: #ffffff;
+    color: #6b21a8;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.ai-preset-chip:hover {
+    background: #f3e8ff;
+    border-color: #c084fc;
+    color: #581c87;
+    transform: translateY(-1px);
+}
+.ai-preset-chip:active {
+    transform: scale(0.96);
+}
+
+.btn-generate-ai {
+    background: linear-gradient(135deg, #8a0e5b 0%, #a21caf 50%, #6366f1 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(162, 28, 175, 0.35);
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.btn-generate-ai:hover {
+    background: linear-gradient(135deg, #700b4a 0%, #86198f 50%, #4f46e5 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(162, 28, 175, 0.45);
+}
+.btn-generate-ai:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ai-result-preview-frame {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 10px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dynamic AI Context & History Reel */
+.ai-student-context-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+.ai-student-context-pill:hover {
+    border-color: #c084fc;
+    box-shadow: 0 2px 8px rgba(192, 38, 211, 0.08);
+}
+
+.ai-history-reel {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 6px 2px;
+}
+.ai-history-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    object-fit: cover;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.ai-history-thumb:hover {
+    border-color: #8a0e5b;
+    transform: scale(1.08);
+}
+.ai-history-thumb.active {
+    border-color: #8a0e5b;
+    box-shadow: 0 0 0 2px rgba(138, 14, 91, 0.25);
+}
+
+.ai-style-pill {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.ai-style-pill:hover {
+    background: #ffffff;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+.ai-style-pill.active {
+    background: #e0e7ff;
+    color: #4338ca;
+    border-color: #818cf8;
+}
+
+/* ==========================================================================
+   STUDIO QUICK TOOLBAR & 3D FLIP CONTROLS
+   ========================================================================== */
+.studio-card-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.btn-studio-save {
+    background: #059669 !important;
+    border: 1px solid #047857 !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 7px 16px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2) !important;
+}
+.btn-studio-save:hover {
+    background: #047857 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3) !important;
+}
+
+.btn-studio-tool {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 7px 14px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+.btn-studio-tool:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.btn-flip-card-3d {
+    background: #ffffff;
+    border: 1.5px solid #e11d48;
+    color: #e11d48;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 7px 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 10px rgba(225, 29, 72, 0.12);
+}
+.btn-flip-card-3d:hover {
+    background: #fff1f2;
+    border-color: #be123c;
+    color: #be123c;
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.22);
+}
+.btn-flip-card-3d.active {
+    background: #e11d48;
+    color: #ffffff;
+}
+
+/* 3D Flip Card Container */
+.card-canvas-stage {
+    perspective: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0;
+    min-height: 640px;
+}
+
+.card-flip-3d-wrapper {
+    position: relative;
+    width: 350px;
+    height: 540px;
+    perspective: 1200px;
+    margin: 0 auto;
+}
+
+.card-flip-3d-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.card-flip-3d-wrapper.is-flipped .card-flip-3d-inner {
+    transform: rotateY(180deg);
+}
+
+.card-flip-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    top: 0;
+    left: 0;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.card-flip-front {
+    z-index: 2;
+    transform: rotateY(0deg);
+}
+
+.card-flip-back {
+    transform: rotateY(180deg);
+    z-index: 1;
+}
+
+/* ==========================================================================
+   Tian Xin Official Student Card (Front: stunden-card.png)
+   ========================================================================== */
+.tianxin-official-card {
+    width: 350px !important;
+    height: 540px !important;
+    background: url('../img/stunden-card.png') no-repeat center center !important;
+    background-size: 100% 100% !important;
+    position: relative !important;
+    border-radius: 18px !important;
+    border: none !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0,0,0,0.08) !important;
+    overflow: hidden !important;
+    user-select: none !important;
+    padding: 0 !important;
+    display: block !important;
+    font-family: 'Kantumruy Pro', 'Khmer OS Battambang', sans-serif !important;
+}
+
+.tianxin-official-card .card-tianxin-photo-box {
+    position: absolute;
+    left: 23.4%;
+    top: 20.8%;
+    width: 52.4%;
+    height: 35.8%;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 2px solid #ffffff;
+    z-index: 2;
+}
+
+.tianxin-official-card .card-student-photo {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 12px !important;
+}
+
+/* Student ID Centered under the Photo Box */
+.tianxin-official-card .card-tianxin-id-center {
+    position: absolute;
+    top: calc(57.0% + 10px);
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 14.5px;
+    color: #0f172a;
+    letter-spacing: 0.5px;
+    z-index: 10;
+}
+
+.tianxin-official-card .card-tianxin-field {
+    position: absolute;
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    z-index: 5;
+}
+
+.tianxin-official-card .card-field-name-kh {
+    top: 60.5%;
+    left: 27.5%;
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Kantumruy Pro', 'Khmer OS Battambang', sans-serif;
+}
+
+.tianxin-official-card .card-field-name-ch {
+    top: 65.2%;
+    left: 27.5%;
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.tianxin-official-card .card-field-gender-kh {
+    top: 69.8%;
+    left: 27.5%;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1e293b;
+    font-family: 'Kantumruy Pro', 'Khmer OS Battambang', sans-serif;
+}
+
+.tianxin-official-card .card-field-gender-ch {
+    top: 74.2%;
+    left: 27.5%;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1e293b;
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.tianxin-official-card .card-field-phone {
+    top: 79.5%;
+    left: 51.5%;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.tianxin-official-card .card-field-date {
+    top: 84.8%;
+    left: 45.8%;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Poppins', 'Kantumruy Pro', sans-serif;
+}
+
+/* ==========================================================================
+   Tian Xin Official Student Card (Back Side: ផ្ទៃខាងក្រោយ)
+   ========================================================================== */
+.tianxin-official-card-back {
+    width: 350px !important;
+    height: 540px !important;
+    background: #ffffff;
+    position: relative !important;
+    border-radius: 18px !important;
+    border: none !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0,0,0,0.08) !important;
+    overflow: hidden !important;
+    user-select: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    font-family: 'Kantumruy Pro', sans-serif !important;
+    text-align: left;
+}
+
+.card-back-header {
+    background: linear-gradient(135deg, #e11d48, #be123c);
+    color: white;
+    padding: 14px 12px 12px 12px;
+    text-align: center;
+    position: relative;
+    border-bottom: 3px solid #fbbf24;
+}
+
+.card-back-logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.card-back-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+    object-fit: contain;
+}
+
+.card-back-title-kh {
+    font-family: 'Moul', serif;
+    font-size: 12.5px;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    margin: 0;
+}
+
+.card-back-title-ch {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fef08a;
+    margin: 1px 0;
+}
+
+.card-back-title-en {
+    font-family: 'Poppins', sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 1px;
+    opacity: 0.95;
+}
+
+.card-back-body {
+    padding: 12px 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-back-rules-title {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #be123c;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.card-back-rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px 0;
+    font-size: 9px;
+    line-height: 1.45;
+    color: #334155;
+}
+
+.card-back-rules-list li {
+    margin-bottom: 5px;
+    position: relative;
+    padding-left: 14px;
+}
+
+.card-back-rules-list li::before {
+    content: "❖";
+    position: absolute;
+    left: 0;
+    color: #e11d48;
+    font-size: 8px;
+    top: 0;
+}
+
+.card-back-mid-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px dashed #cbd5e1;
+    margin-bottom: 6px;
+}
+
+.card-back-barcode-box {
+    text-align: center;
+    flex-grow: 1;
+}
+
+.card-back-stamp-box {
+    width: 75px;
+    height: 75px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-back-footer {
+    background: linear-gradient(135deg, #e11d48, #be123c);
+    color: white;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 8px;
+    line-height: 1.35;
+}
+
+.card-back-footer-text {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.card-back-footer-qr {
+    width: 42px;
+    height: 42px;
+    background: white;
+    padding: 2.5px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+@media print {
+    .tianxin-official-card,
+    .tianxin-official-card-back {
+        width: 54mm !important;
+        height: 83.4mm !important;
+        box-shadow: none !important;
+        border-radius: 3mm !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        page-break-after: always;
+        break-after: page;
+    }
+    .tianxin-official-card .card-tianxin-id-center {
+        font-size: 8pt !important;
+        top: calc(57.0% + 2mm) !important;
+    }
+    .tianxin-official-card .card-field-name-kh,
+    .tianxin-official-card .card-field-name-ch {
+        font-size: 9.5pt !important;
+    }
+    .tianxin-official-card .card-field-gender-kh,
+    .tianxin-official-card .card-field-gender-ch,
+    .tianxin-official-card .card-field-phone {
+        font-size: 9pt !important;
+    }
+    .tianxin-official-card .card-field-date {
+        font-size: 8.5pt !important;
+    }
+}
+
+/* ==========================================================================
+   Modern Studio Layout 2.0 (Standard & Dynamic Dock Architecture)
+   ========================================================================== */
+
+/* Modern Studio Shell */
+.official-card-studio-wrapper {
+    background: #f8fafc;
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+}
+
+/* Modern Top Header Banner */
+.studio-header-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0369a1 100%);
+    border-radius: 20px;
+    padding: 20px 26px;
+    color: white;
+    margin-bottom: 22px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.studio-header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.studio-header-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: #38bdf8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.studio-header-h1 {
+    font-family: 'Moul', 'Khmer OS Muol Light', serif;
+    font-size: 1.18rem;
+    letter-spacing: 0.5px;
+    margin: 0 0 3px 0;
+    color: #ffffff;
+}
+
+.studio-header-p {
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    margin: 0;
+}
+
+/* Top Action Buttons Group */
+.studio-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-studio-back {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(6px);
+}
+.btn-studio-back:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Category Quick Bar */
+.studio-category-bar {
+    background: white;
+    border-radius: 18px;
+    padding: 8px 10px;
+    margin-bottom: 22px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.studio-cat-tab-btn {
+    flex: 1;
+    min-width: 170px;
+    border: none;
+    background: transparent;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.studio-cat-tab-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.studio-cat-tab-btn.active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    box-shadow: 0 6px 16px -2px rgba(37, 99, 235, 0.35);
+}
+
+.studio-cat-badge-counter {
+    background: rgba(100, 116, 139, 0.15);
+    color: #475569;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.studio-cat-tab-btn.active .studio-cat-badge-counter {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+/* Studio Left Dock Tabs */
+.studio-dock-tabs-nav {
+    display: flex;
+    background: #e2e8f0;
+    padding: 5px;
+    border-radius: 16px;
+    gap: 4px;
+    margin-bottom: 18px;
+}
+
+.studio-dock-nav-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    padding: 9px 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.studio-dock-nav-btn:hover {
+    color: #0f172a;
+}
+
+.studio-dock-nav-btn.active {
+    background: white;
+    color: #2563eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Sticky Stage on the Right */
+.studio-stage-column {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* View Mode Selector (3D Flip vs Dual View) */
+.studio-view-toggle-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.btn-view-toggle {
+    border: 1px solid #e2e8f0;
+    background: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-view-toggle:hover {
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.btn-view-toggle.active {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: white;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+}
+
+/* Dual View Mode (Side by Side) */
+.studio-dual-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-bottom: 18px;
+}
+
+.studio-dual-card-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.studio-dual-card-label {
+    background: #1e293b;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Quick Card Info Bar */
+.studio-card-quick-stats {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    max-width: 480px;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.studio-stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.studio-stat-label {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.studio-stat-val {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+/* Interactive Photo Drag & Zoom Styling */
+#layer-photoFrame {
+    cursor: grab;
+    cursor: -webkit-grab;
+}
+
+#layer-photoFrame:active,
+#layer-photoFrame.is-dragging {
+    cursor: grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.card-tianxin-photo-box {
+    transition: box-shadow 0.2s ease;
+}
+
+.card-tianxin-photo-box:hover {
+    box-shadow: 0 0 0 2px #38bdf8, 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* Typography Color Preset Dots */
+.color-preset-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+.color-preset-dot:hover {
+    transform: scale(1.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+

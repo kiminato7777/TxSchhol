@@ -1,0 +1,535 @@
+@font-face {
+  font-family: 'Kantumruy Pro';
+  src: url('../fonts/Kantumruy-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Kantumruy Pro';
+  src: url('../fonts/Kantumruy-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Kantumruy Pro';
+  src: url('../fonts/Kantumruy-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: 'Kantumruy Pro', 'Poppins', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 50%, #e0f2fe 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-weight: 300;
+}
+
+/* Floating Shapes for Aesthetics */
+.background-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: -1;
+  opacity: 0.6;
+  animation: floating 8s ease-in-out infinite alternate;
+}
+
+.shape-1 {
+  width: 400px;
+  height: 400px;
+  background: #38bdf8; /* Sky blue matching banner details */
+  top: -100px;
+  left: -100px;
+  opacity: 0.35;
+  animation-delay: 0s;
+}
+
+.shape-2 {
+  width: 350px;
+  height: 350px;
+  background: #4ade80; /* Mint green matching banner leaves */
+  bottom: -80px;
+  right: -80px;
+  opacity: 0.3;
+  animation-delay: -2s;
+}
+
+.shape-3 {
+  width: 200px;
+  height: 200px;
+  background: #fde047; /* Yellow/Gold matching school logo */
+  top: 40%;
+  right: 20%;
+  opacity: 0.2;
+  animation-delay: -4s;
+  filter: blur(40px);
+}
+
+@keyframes floating {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    transform: translateY(20px) scale(1.05);
+  }
+}
+
+/* Dynamic Glassmorphism Login Card */
+.login-container {
+  width: 100%;
+  max-width: 450px;
+  margin: 20px;
+  padding: 44px 38px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: 28px;
+  box-shadow: 0 25px 60px rgba(214, 51, 132, 0.12), 0 8px 24px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  animation: loginCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loginCardPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.login-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.logo-container {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 16px;
+  background: white;
+  padding: 3px;
+  border-radius: 50%;
+  box-shadow: 0 10px 25px rgba(214, 51, 132, 0.18), 0 0 0 4px rgba(214, 51, 132, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(214, 51, 132, 0.15);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
+}
+
+.logo-container:hover {
+  transform: scale(1.06) rotate(2deg);
+  box-shadow: 0 14px 30px rgba(214, 51, 132, 0.25), 0 0 0 6px rgba(214, 51, 132, 0.1);
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.school-title {
+  font-family: 'Kantumruy Pro', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  margin-bottom: 4px;
+  background: linear-gradient(
+    to right,
+    #d63384 0%,
+    #d63384 35%,
+    #ffd700 50%, /* Gold reflection sweep */
+    #d63384 65%,
+    #d63384 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShine 5s infinite linear;
+  display: inline-block;
+}
+
+@keyframes textShine {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 0 center;
+  }
+}
+
+.school-subtitle {
+  font-size: 18px;
+  color: #64748b;
+  margin-top: 5px;
+  font-weight: 400;
+}
+
+/* Inputs */
+.input-group {
+  position: relative;
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.input-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  font-size: 18px;
+  transition: color 0.3s;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 16px 20px 16px 50px;
+  /* Space for icon */
+  padding-right: 50px;
+  border: 1.5px solid transparent;
+  border-radius: 50px;
+  /* Pill shape */
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  color: #555;
+}
+
+.input-group input:focus {
+  background: #fff;
+  outline: none;
+  border-color: rgba(214, 51, 132, 0.4);
+  box-shadow: 0 8px 25px rgba(214, 51, 132, 0.14);
+  transform: translateY(-2px);
+}
+
+.input-group input:focus+.input-icon {
+  color: #d63384;
+}
+
+.input-group input::placeholder {
+  color: #bbb;
+}
+
+/* Toggle Password */
+.toggle-password {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #aaa;
+  transition: color 0.3s, transform 0.2s;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  z-index: 3;
+}
+
+.toggle-password:hover {
+  color: #d63384;
+  transform: translateY(-50%) scale(1.15);
+}
+
+/* Button */
+.btn-login {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  background: linear-gradient(135deg, #d63384 0%, #e24a8d 50%, #f472b6 100%);
+  background-size: 200% auto;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 10px 25px rgba(214, 51, 132, 0.3);
+  margin-top: 10px;
+  font-family: 'Kantumruy Pro', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-login i {
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spinner and Spin Animations */
+.fi-spin {
+  display: inline-block;
+  animation: fiSpin 1s linear infinite;
+}
+
+@keyframes fiSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: fiSpin 0.75s linear infinite;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.btn-login:hover {
+  background-position: right center;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(214, 51, 132, 0.4);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+.btn-login:disabled {
+  background: #cbd5e1;
+  color: #64748b;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Dynamic Responsive adjustments */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 34px 22px 26px;
+    border-radius: 24px;
+    margin: 15px;
+    max-width: 92%;
+  }
+
+  .school-title {
+    font-size: 20px;
+  }
+
+  .school-subtitle {
+    font-size: 15px;
+  }
+
+  .logo-container {
+    width: 82px;
+    height: 82px;
+    margin-bottom: 12px;
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+  }
+
+  .input-group input {
+    padding: 14px 18px 14px 46px;
+    font-size: 14px;
+  }
+}
+
+/* Footer */
+.footer-text {
+  margin-top: 26px;
+  font-size: 14px;
+  color: #888;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+/* Alert */
+#customAlert {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #ff6b6b, #ee5253);
+  color: white;
+  padding: 16px 30px;
+  border-radius: 50px;
+  box-shadow: 0 10px 30px rgba(238, 82, 83, 0.3);
+  z-index: 1000;
+  display: none;
+  font-weight: 600;
+  animation: slideInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  min-width: 320px;
+  text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInDown {
+  from {
+    top: -100px;
+    opacity: 0;
+  }
+
+  to {
+    top: 30px;
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10px);
+  }
+
+  50% {
+    transform: translateX(10px);
+  }
+
+  75% {
+    transform: translateX(-10px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* --- PREMIUM MODAL STYLES --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: none; /* Hidden by default */
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-card {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 30px;
+  border-radius: 30px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  transform: scale(0.8);
+  opacity: 0;
+  animation: modalScaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  background: #fff0f0;
+  color: #ff4757;
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 25px;
+  box-shadow: 0 10px 20px rgba(255, 71, 87, 0.1);
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2f3542;
+  margin-bottom: 15px;
+}
+
+.modal-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #57606f;
+  margin-bottom: 25px;
+  font-weight: 400;
+}
+
+.modal-info {
+  background: #f1f2f6;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #747d8c;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  background: linear-gradient(45deg, #ff4757, #ff6b81);
+  color: white;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3);
+}
+
+.modal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(255, 71, 87, 0.4);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleUp {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
