@@ -3791,7 +3791,7 @@ window.showAdminServiceForm = function(studentKey, index = -1) {
         <label class="form-label small fw-bold text-secondary">អ្នកទទួលប្រាក់ (Receiver)</label>
         <div class="input-group rounded-3 overflow-hidden border bg-white">
             <span class="input-group-text border-0 bg-transparent"><i class="fi fi-rr-user-tie text-muted"></i></span>
-            ${typeof getReceiverSelectHtml === 'function' ? getReceiverSelectHtml(receiver, '', 'form-select border-0 py-2 fw-semibold', 'asReceiver', 'required') : `<input type="text" class="form-control border-0 py-2 fw-semibold" id="asReceiver" value="${receiver}" placeholder="ឈ្មោះអ្នកទទួល...">`}
+            ${typeof getReceiverSelectHtml === 'function' ? getReceiverSelectHtml(receiver, '', 'form-select border-0 py-2 fw-semibold', 'asReceiver', 'required') : ('<input type="text" class="form-control border-0 py-2 fw-semibold" id="asReceiver" value="' + (receiver || '') + '" placeholder="ឈ្មោះអ្នកទទួល...">')}
         </div>
     </div>
 
@@ -9636,6 +9636,10 @@ function showEditInstallmentModal(key, index, displayStage) {
     // Helper for delete param
     const deleteParamVal = isInitial ? `'${key}', 'initial'` : `'${key}', ${index}`;
     const saveParamVal = isInitial ? `'${key}', 'initial'` : `'${key}', ${index}`;
+    const stageNum = displayStage || inst.stage || (index + 1);
+    const modalTitleText = isInitial 
+        ? (isAdmin ? 'កែប្រែការបង់ប្រាក់ដំបូង (Admin)' : 'មើលប្រវត្តិបង់ប្រាក់ដំបូង') 
+        : ('កែប្រែប្រវត្តិបង់ប្រាក់ (ដំណាក់កាលទី ' + stageNum + ')');
 
     const existing = document.getElementById('editInstallmentModal');
     if (existing) existing.remove(); // Clean up old modals
@@ -9691,7 +9695,7 @@ function showEditInstallmentModal(key, index, displayStage) {
                     <div class="modal-header">
 <h5 class="modal-title mb-0">
     <i class="fi fi-rr-edit-alt me-3 fs-4"></i> 
-    ${isInitial ? (isAdmin ? 'កែប្រែការបង់ប្រាក់ដំបូង (Admin)' : 'មើលប្រវត្តិបង់ប្រាក់ដំបូង') : `កែប្រែប្រវត្តិបង់ប្រាក់ (ដំណាក់កាលទី ${displayStage || inst.stage || index + 1})`}
+    ${modalTitleText}
 </h5>
 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
@@ -9712,7 +9716,7 @@ ${lockInfo}
                 <input type="text" class="v5-input-custom" name="date" 
                     value="${formatKhmerMonthDate(inst.date)}" 
                     placeholder="31-12-2026"
-                    oninput="this.value = this.value.replace(/[^0-9-\\/]/g, '')" ${readonlyAttr}>
+                    oninput="this.value = this.value.replace(/[^0-9/-]/g, '')" ${readonlyAttr}>
             </div>
             <small class="text-muted" style="font-size: 0.65rem;">ទម្រង់: ថ្ងៃ-ខែ-ឆ្នាំ (ឧ. 10-03-2026)</small>
         </div>
