@@ -117,13 +117,18 @@
                             <i class="fi fi-rr-share text-primary"></i>
                             <span>របាយការណ៍</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" aria-labelledby="exportReportDropdown" style="min-width: 275px; z-index: 1060;">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" aria-labelledby="exportReportDropdown" style="min-width: 285px; z-index: 1060;">
                             <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍បង់ប្រាក់ & បំណុល</h6></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportTodayDuePDF()"><i class="fi fi-rr-calendar-clock text-primary"></i> សិស្សត្រូវបង់ថ្ងៃនេះ (Today Due)</a></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('overdue')"><i class="fi fi-rr-alarm-exclamation text-danger"></i> សិស្សហួសកាលកំណត់ (Overdue)</a></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('warning')"><i class="fi fi-rr-time-forward text-warning"></i> សិស្សជិតដល់ថ្ងៃបង់ (Warning)</a></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('debt')"><i class="fi fi-rr-money-bill-wave text-danger"></i> របាយការណ៍បំណុលសរុប (Debts)</a></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('delay')"><i class="fi fi-rr-clock text-info"></i> សិស្សពន្យារការបង់ (Delay)</a></li>
+                            <li><hr class="dropdown-divider my-2"></li>
+                            <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍ត្រូវបង់ប្រចាំខែ (Monthly Due)</h6></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="window.switchToMonthlyDueTab()"><i class="fi fi-rr-calendar-clock text-indigo" style="color: #6366f1;"></i> បើកតារាងត្រូវបង់ប្រចាំខែ (Open Tab)</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger fw-bold" href="javascript:void(0)" onclick="window.generateMonthlyDuePDF()"><i class="fi fi-rr-file-pdf text-danger"></i> ទាញយក PDF ត្រូវបង់ប្រចាំខែ</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-success fw-bold" href="javascript:void(0)" onclick="window.exportMonthlyDueExcel()"><i class="fi fi-rr-file-excel text-success"></i> នាំចេញ Excel ត្រូវបង់ប្រចាំខែ</a></li>
                             <li><hr class="dropdown-divider my-2"></li>
                             <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍ប្រចាំខែ / ឆ្នាំ / គ្រូ</h6></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadMonthlyReport()"><i class="fi fi-rr-calendar text-success"></i> របាយការណ៍ប្រចាំខែ (Monthly)</a></li>
@@ -601,11 +606,11 @@
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <button class="btn btn-outline-danger rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm" onclick="window.generateMonthlyDuePDF()">
-                                            <i class="fi fi-rr-file-pdf"></i> ទាញយក PDF
+                                        <button class="btn rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.exportMonthlyDueExcel()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.9rem;" title="ទាញយកបញ្ជីសិស្សត្រូវបង់ប្រចាំខែជា Excel (.xlsx)">
+                                            <i class="fi fi-rr-file-excel"></i> <span>ទាញយក Excel (.xlsx)</span>
                                         </button>
-                                        <button class="btn btn-outline-success rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm" onclick="window.exportMonthlyDueExcel()">
-                                            <i class="fi fi-rr-file-excel"></i> នាំចេញ Excel
+                                        <button class="btn rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.generateMonthlyDuePDF()" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); font-size: 0.9rem;" title="ទាញយកបញ្ជីសិស្សត្រូវបង់ប្រចាំខែជា PDF">
+                                            <i class="fi fi-rr-file-pdf"></i> <span>ទាញយកជា PDF</span>
                                         </button>
                                     </div>
                                 </div>
@@ -714,7 +719,15 @@
                                         <i class="fi fi-rr-list text-primary"></i>
                                         <span id="monthlyDueTableTitle">បញ្ជីរាយនាមសិស្សត្រូវបង់ប្រាក់ក្នុងខែវិច្ឆិកា ឆ្នាំ ២០២៦</span>
                                     </h6>
-                                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold" id="monthlyDueTableBadge">0 នាក់</span>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold" id="monthlyDueTableBadge">0 នាក់</span>
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.82rem;" title="ទាញយកបញ្ជីតារាងខែនេះជា Excel (.xlsx)">
+                                            <i class="fi fi-rr-file-excel"></i> <span>Excel</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.generateMonthlyDuePDF()" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); font-size: 0.82rem;" title="ទាញយកបញ្ជីតារាងខែនេះជា PDF">
+                                            <i class="fi fi-rr-file-pdf"></i> <span>PDF</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0" id="monthlyDueTable">

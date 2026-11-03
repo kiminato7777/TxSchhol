@@ -17662,11 +17662,12 @@ window.filterMonthlyDueTable = function() {
 };
 
 window.exportMonthlyDueExcel = function(targetMonth, targetYear) {
-    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
-    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
+    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || parseInt($('#dueMonthSelect').val()) || (new Date().getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || parseInt($('#dueYearSelect').val()) || new Date().getFullYear());
     const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
 
-    const data = window.getMonthlyDueStudentsData(month, year, 'all', window.CURRENT_MONTHLY_INCLUDE_PAST);
+    const currentFilter = window.CURRENT_MONTHLY_DUE_FILTER || 'all';
+    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, window.CURRENT_MONTHLY_INCLUDE_PAST);
 
     if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
@@ -17680,8 +17681,10 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear) {
         return alert('XLSX library not loaded!');
     }
 
+    let totalDueSum = 0;
     const exportRows = data.records.map((r, idx) => {
         const s = r.student;
+        totalDueSum += (r.debt || 0);
         return {
             'ល.រ': idx + 1,
             'អត្តលេខ': s.displayId || '',
@@ -17697,6 +17700,23 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear) {
             'ទឹកប្រាក់ត្រូវបង់ ($)': r.debt,
             'ស្ថានភាព': r.statusText
         };
+    });
+
+    // Summary Total Row
+    exportRows.push({
+        'ល.រ': 'សរុប',
+        'អត្តលេខ': `${data.records.length} នាក់`,
+        'គោត្តនាម-នាម': '',
+        'ឈ្មោះចិន': '',
+        'ឈ្មោះអង់គ្លេស': '',
+        'ភេទ': '',
+        'ផ្នែកសិក្សា': '',
+        'កម្រិត': '',
+        'ម៉ោងសិក្សា': '',
+        'គ្រូបន្ទុកថ្នាក់': '',
+        'ថ្ងៃត្រូវបង់': 'សរុបទឹកប្រាក់ត្រូវប្រមូល៖',
+        'ទឹកប្រាក់ត្រូវបង់ ($)': parseFloat(totalDueSum.toFixed(2)),
+        'ស្ថានភាព': ''
     });
 
     const ws = XLSX.utils.json_to_sheet(exportRows);
