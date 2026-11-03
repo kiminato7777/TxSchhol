@@ -17306,7 +17306,7 @@ window.loadStudentAttendanceTab = async function(studentKey) {
 window.CURRENT_MONTHLY_DUE_FILTER = 'all';
 window.CURRENT_MONTHLY_INCLUDE_PAST = false;
 
-// 1. Helper: Resolve student effective due date & payment context (100% Dynamic)
+// 1. Helper: Resolve student effective due date & payment context (100% Dynamic & Strict Month Matching)
 window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) {
     if (!student) return null;
 
@@ -17317,7 +17317,7 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
         return null;
     }
 
-    // Helper to test if a date matches targetMonth and targetYear
+    // Helper to test if a date strictly matches targetMonth and targetYear
     const checkDateMatch = (raw) => {
         if (!raw || ['មិនមាន', 'n/a', '', 'undefined', 'null', 'completed', '01-01-100'].includes(String(raw).toLowerCase().trim())) {
             return null;
@@ -17336,27 +17336,7 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
 
     const isDelay = pStatus === 'delay' || pStatus === 'postponed' || pStatus === 'ពន្យា' || pStatus === 'ពន្យារពេល';
 
-    // Check installments
-    let matchedInstallments = [];
-    if (student.installments) {
-        const instList = Array.isArray(student.installments) ? student.installments : Object.values(student.installments);
-        for (const inst of instList) {
-            const iDateMatch = checkDateMatch(inst.date || inst.paymentDate || inst.dueDate);
-            if (iDateMatch && iDateMatch.m === targetMonth && iDateMatch.y === targetYear) {
-                matchedInstallments.push({ ...iDateMatch, inst });
-            } else if (inst.forMonth && (parseInt(inst.forMonth) === targetMonth || String(inst.forMonth).includes(String(targetMonth)))) {
-                matchedInstallments.push({
-                    dObj: iDateMatch ? iDateMatch.dObj : new Date(targetYear, targetMonth - 1, 1, 12, 0, 0),
-                    m: targetMonth,
-                    y: targetYear,
-                    raw: inst.date || inst.forMonth,
-                    inst
-                });
-            }
-        }
-    }
-
-    // Check nextPaymentDate, paymentDueDate, postponedDate, startDate
+    // 1. Check primary upcoming dates first (nextPaymentDate, postponedDate, paymentDueDate)
     const nextMatch = checkDateMatch(student.nextPaymentDate);
     const dueMatch = checkDateMatch(student.paymentDueDate);
     const postMatch = checkDateMatch(student.postponedDate);
@@ -17372,82 +17352,61 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
     let monthlyDebt = 0;
     let isStudentPaidInMonth = false;
 
-    if (matchedInstallments.length > 0) {
-        // Matched one or more installments for this month
-        isTargetMonth = true;
-        matchedInstallments.sort((a, b) => a.dObj.getTime() - b.dObj.getTime());
-        matchedDateObj = matchedInstallments[0].dObj;
-        matchedRawDate = matchedInstallments[0].raw;
-        stageLabel = matchedInstallments.map(m => m.inst.stage ? ('ដំណាក់កាល ' + m.inst.stage) : '').filter(Boolean).join(', ');
-
-        matchedInstallments.forEach(m => {
-            const amt = parseCurrency(m.inst.amount || m.inst.fee || 0);
-            const paidAmt = parseCurrency(m.inst.paidAmount || (m.inst.paid ? amt : 0));
-            monthlyFee += amt;
-            monthlyPaid += paidAmt;
-        });
-
-        monthlyDebt = Math.max(0, monthlyFee - monthlyPaid);
-        isStudentPaidInMonth = (monthlyFee > 0 && monthlyPaid >= monthlyFee) || matchedInstallments.every(m => m.inst.paid === true);
-    } else if (isDelay && postMatch && postMatch.m === targetMonth && postMatch.y === targetYear) {
-        matchedDateObj = postMatch.dObj;
-        matchedRawDate = postMatch.raw;
-        isTargetMonth = true;
-        monthlyFee = parseCurrency(student.tuitionFee || student.courseFee || student.monthlyFee || student.price || totalRemainingBalance);
-        monthlyDebt = totalRemainingBalance > 0 ? totalRemainingBalance : monthlyFee;
-        monthlyPaid = Math.max(0, monthlyFee - monthlyDebt);
-    } else if (nextMatch && nextMatch.m === targetMonth && nextMatch.y === targetYear) {
+    // Priority 1: nextPaymentDate falling in targetMonth & targetYear
+    if (nextMatch && nextMatch.m === targetMonth && nextMatch.y === targetYear) {
         matchedDateObj = nextMatch.dObj;
         matchedRawDate = nextMatch.raw;
         isTargetMonth = true;
-        monthlyFee = parseCurrency(student.tuitionFee || student.courseFee || student.monthlyFee || student.price || totalRemainingBalance);
-        const isPaidStatus = pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidoff' || enStatus === 'paidoff';
-        if (isPaidStatus || totalRemainingBalance <= 0.01) {
-            isStudentPaidInMonth = true;
-            monthlyPaid = monthlyFee;
-            monthlyDebt = 0;
-        } else {
-            monthlyDebt = totalRemainingBalance > 0 ? totalRemainingBalance : monthlyFee;
-            monthlyPaid = Math.max(0, monthlyFee - monthlyDebt);
-        }
+    } else if (isDelay && postMatch && postMatch.m === targetMonth && postMatch.y === targetYear) {
+        // Priority 2: postponedDate for postponed students
+        matchedDateObj = postMatch.dObj;
+        matchedRawDate = postMatch.raw;
+        isTargetMonth = true;
     } else if (dueMatch && dueMatch.m === targetMonth && dueMatch.y === targetYear) {
+        // Priority 3: paymentDueDate
         matchedDateObj = dueMatch.dObj;
         matchedRawDate = dueMatch.raw;
         isTargetMonth = true;
-        monthlyFee = parseCurrency(student.tuitionFee || student.courseFee || student.monthlyFee || student.price || totalRemainingBalance);
-        const isPaidStatus = pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidoff' || enStatus === 'paidoff';
-        if (isPaidStatus || totalRemainingBalance <= 0.01) {
-            isStudentPaidInMonth = true;
-            monthlyPaid = monthlyFee;
-            monthlyDebt = 0;
-        } else {
-            monthlyDebt = totalRemainingBalance > 0 ? totalRemainingBalance : monthlyFee;
-            monthlyPaid = Math.max(0, monthlyFee - monthlyDebt);
-        }
     } else if (postMatch && postMatch.m === targetMonth && postMatch.y === targetYear) {
         matchedDateObj = postMatch.dObj;
         matchedRawDate = postMatch.raw;
         isTargetMonth = true;
-        monthlyFee = parseCurrency(student.tuitionFee || student.courseFee || student.monthlyFee || student.price || totalRemainingBalance);
-        monthlyDebt = totalRemainingBalance > 0 ? totalRemainingBalance : monthlyFee;
-        monthlyPaid = Math.max(0, monthlyFee - monthlyDebt);
-    } else if (startMatch && startMatch.m === targetMonth && startMatch.y === targetYear) {
-        matchedDateObj = startMatch.dObj;
-        matchedRawDate = startMatch.raw;
-        isTargetMonth = true;
-        monthlyFee = parseCurrency(student.tuitionFee || student.courseFee || student.monthlyFee || student.price || student.initialPayment || 0);
-        const isPaidStatus = pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidoff' || enStatus === 'paidoff';
-        if (isPaidStatus || totalRemainingBalance <= 0.01) {
-            isStudentPaidInMonth = true;
-            monthlyPaid = monthlyFee;
-            monthlyDebt = 0;
-        } else {
-            monthlyDebt = totalRemainingBalance > 0 ? totalRemainingBalance : monthlyFee;
-            monthlyPaid = Math.max(0, monthlyFee - monthlyDebt);
+    }
+
+    // Priority 4: Check if any installment explicitly belongs to targetMonth & targetYear
+    let matchedInstallments = [];
+    if (student.installments) {
+        const instList = Array.isArray(student.installments) ? student.installments : Object.values(student.installments);
+        for (const inst of instList) {
+            const iDateMatch = checkDateMatch(inst.date || inst.paymentDate || inst.dueDate);
+            if (iDateMatch && iDateMatch.m === targetMonth && iDateMatch.y === targetYear) {
+                matchedInstallments.push({ ...iDateMatch, inst });
+                continue;
+            }
+            if (inst.forMonth) {
+                const fMatch = checkDateMatch(inst.forMonth);
+                if (fMatch && fMatch.m === targetMonth && fMatch.y === targetYear) {
+                    matchedInstallments.push({ ...fMatch, inst });
+                }
+            }
         }
     }
 
-    // Check past month for includePast
+    if (!isTargetMonth && matchedInstallments.length > 0) {
+        isTargetMonth = true;
+        matchedInstallments.sort((a, b) => a.dObj.getTime() - b.dObj.getTime());
+        matchedDateObj = matchedInstallments[0].dObj;
+        matchedRawDate = matchedInstallments[0].raw;
+    }
+
+    // Priority 5: Newly enrolled in this month
+    if (!isTargetMonth && startMatch && startMatch.m === targetMonth && startMatch.y === targetYear) {
+        matchedDateObj = startMatch.dObj;
+        matchedRawDate = startMatch.raw;
+        isTargetMonth = true;
+    }
+
+    // Priority 6: Check past overdue for includePast
     const primaryMatch = nextMatch || dueMatch || postMatch || startMatch;
     if (!isTargetMonth && primaryMatch) {
         if (primaryMatch.y < targetYear || (primaryMatch.y === targetYear && primaryMatch.m < targetMonth)) {
@@ -17461,6 +17420,39 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
     }
 
     if (!matchedDateObj) return null;
+
+    // Resolve stage label if installment exists
+    if (matchedInstallments.length > 0) {
+        stageLabel = matchedInstallments.map(m => m.inst.stage ? ('ដំណាក់កាល ' + m.inst.stage) : '').filter(Boolean).join(', ');
+        let instTotalAmt = 0;
+        let instTotalPaid = 0;
+        matchedInstallments.forEach(m => {
+            const amt = parseCurrency(m.inst.amount || m.inst.fee || 0);
+            const paidAmt = parseCurrency(m.inst.paidAmount || (m.inst.paid ? amt : 0));
+            instTotalAmt += amt;
+            instTotalPaid += paidAmt;
+        });
+        if (instTotalAmt > 0) {
+            monthlyFee = instTotalAmt;
+            monthlyPaid = instTotalPaid;
+            monthlyDebt = Math.max(0, monthlyFee - monthlyPaid);
+            isStudentPaidInMonth = (monthlyPaid >= monthlyFee) || matchedInstallments.every(m => m.inst.paid === true);
+        }
+    }
+
+    // Default fee resolution if not from installment
+    if (monthlyFee <= 0) {
+        monthlyFee = parseCurrency(student.tuitionFee || student.courseFee || student.monthlyFee || student.price || totalRemainingBalance);
+        const isPaidStatus = pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidoff' || enStatus === 'paidoff';
+        if (isPaidStatus || totalRemainingBalance <= 0.01) {
+            isStudentPaidInMonth = true;
+            monthlyPaid = monthlyFee;
+            monthlyDebt = 0;
+        } else {
+            monthlyDebt = totalRemainingBalance > 0 ? totalRemainingBalance : monthlyFee;
+            monthlyPaid = Math.max(0, monthlyFee - monthlyDebt);
+        }
+    }
 
     // Calculate days remaining from today (noon)
     const today = new Date();
@@ -17544,7 +17536,7 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
     };
 };
 
-// 2. Core: Extract students and KPI metrics for any month & year (100% Dynamic)
+// 2. Core: Extract students and KPI metrics for any month & year (100% Dynamic & Strict Month Matching)
 window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter = 'all', includePast = false) {
     const allStudents = (window.rawStudentsArray && window.rawStudentsArray.length > 0)
         ? window.rawStudentsArray
@@ -17554,9 +17546,16 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
     const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || (currentD.getMonth() + 1));
     const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || currentD.getFullYear());
 
-    // 12-month summary counts for quick navigation pills (Calculated dynamically across the entire year)
+    // 12-month summary counts for quick navigation pills (Strict month matching)
     const monthCounts = Array(12).fill(0);
     const monthAmounts = Array(12).fill(0);
+
+    const checkMatchHelper = (raw) => {
+        if (!raw || ['មិនមាន', 'n/a', '', 'undefined', 'null', 'completed', '01-01-100'].includes(String(raw).toLowerCase().trim())) return null;
+        const dObj = getDateObject(raw);
+        if (!dObj || isNaN(dObj.getTime())) return null;
+        return { m: dObj.getMonth() + 1, y: dObj.getFullYear() };
+    };
 
     allStudents.forEach(s => {
         const enStatus = (s.enrollmentStatus || '').toLowerCase().trim();
@@ -17564,26 +17563,30 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
 
         const studentMonthsInYear = new Set();
 
-        if (s.installments) {
-            const instList = Array.isArray(s.installments) ? s.installments : Object.values(s.installments);
-            instList.forEach(inst => {
-                const dObj = getDateObject(inst.date || inst.paymentDate || inst.dueDate);
-                if (dObj && !isNaN(dObj.getTime()) && dObj.getFullYear() === year) {
-                    const m = dObj.getMonth() + 1;
-                    if (m >= 1 && m <= 12) studentMonthsInYear.add(m);
-                }
-            });
-        }
-
-        ['nextPaymentDate', 'paymentDueDate', 'postponedDate', 'startDate'].forEach(f => {
+        ['nextPaymentDate', 'postponedDate', 'paymentDueDate', 'startDate'].forEach(f => {
             if (s[f]) {
-                const dObj = getDateObject(s[f]);
-                if (dObj && !isNaN(dObj.getTime()) && dObj.getFullYear() === year) {
-                    const m = dObj.getMonth() + 1;
-                    if (m >= 1 && m <= 12) studentMonthsInYear.add(m);
+                const mObj = checkMatchHelper(s[f]);
+                if (mObj && mObj.y === year && mObj.m >= 1 && mObj.m <= 12) {
+                    studentMonthsInYear.add(mObj.m);
                 }
             }
         });
+
+        if (s.installments) {
+            const instList = Array.isArray(s.installments) ? s.installments : Object.values(s.installments);
+            instList.forEach(inst => {
+                const iMatch = checkMatchHelper(inst.date || inst.paymentDate || inst.dueDate);
+                if (iMatch && iMatch.y === year && iMatch.m >= 1 && iMatch.m <= 12) {
+                    studentMonthsInYear.add(iMatch.m);
+                }
+                if (inst.forMonth) {
+                    const fMatch = checkMatchHelper(inst.forMonth);
+                    if (fMatch && fMatch.y === year && fMatch.m >= 1 && fMatch.m <= 12) {
+                        studentMonthsInYear.add(fMatch.m);
+                    }
+                }
+            });
+        }
 
         studentMonthsInYear.forEach(m => {
             monthCounts[m - 1]++;
