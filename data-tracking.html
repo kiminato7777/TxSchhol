@@ -666,34 +666,73 @@
                                 </div>
                             </div>
 
-                            <!-- Selected Month KPI Summary Cards -->
+                            <!-- Selected Month KPI Summary Cards (Modern 5-Card Dashboard) -->
                             <div class="row g-3 mb-4">
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-primary border-4 h-100">
-                                        <div class="small text-secondary fw-semibold mb-1">សិស្សត្រូវបង់សរុប (Total Due)</div>
-                                        <div class="fw-bold text-primary fs-3" id="monthlyDueTotalCount">0 នាក់</div>
-                                        <div class="small text-muted mt-1" id="monthlyDueSubChinese">ចិនពេញម៉ោង: 0 | ក្រៅម៉ោង: 0</div>
+                                <!-- Card 1: Total Students -->
+                                <div class="col-xl col-md-4 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white monthly-due-kpi-card text-primary h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">សិស្សសរុបក្នុងខែ</span>
+                                            <div class="rounded-circle p-2 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                                <i class="fi fi-rr-users-alt"></i>
+                                            </div>
+                                        </div>
+                                        <div class="fw-bold text-dark fs-3" id="monthlyDueTotalCount">0 នាក់</div>
+                                        <div class="small text-muted mt-1 text-truncate" id="monthlyDueSubChinese" style="font-size: 0.72rem;">ចិន: 0 | ក្រៅម៉ោង: 0 | ទូទៅ: 0</div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-danger border-4 h-100">
-                                        <div class="small text-secondary fw-semibold mb-1">ទឹកប្រាក់ត្រូវប្រមូលសរុប (Due Amount)</div>
+                                <!-- Card 2: Expected Monthly Tuition -->
+                                <div class="col-xl col-md-4 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white monthly-due-kpi-card text-purple h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">ទឹកប្រាក់ត្រូវបង់សរុប</span>
+                                            <div class="rounded-circle p-2 bg-purple-subtle text-purple d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                                <i class="fi fi-rr-receipt"></i>
+                                            </div>
+                                        </div>
+                                        <div class="fw-bold text-purple fs-3" id="monthlyDueExpectedAmount">$0.00</div>
+                                        <div class="small text-muted mt-1" style="font-size: 0.72rem;">ថ្លៃសិក្សាត្រូវប្រមូលខែនេះ</div>
+                                    </div>
+                                </div>
+                                <!-- Card 3: Collected / Paid -->
+                                <div class="col-xl col-md-4 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white monthly-due-kpi-card text-success h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">ប្រមូលបានរួចរាល់</span>
+                                            <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                                <i class="fi fi-rr-check-circle"></i>
+                                            </div>
+                                        </div>
+                                        <div class="fw-bold text-success fs-3" id="monthlyDuePaidAmount">$0.00</div>
+                                        <div class="small text-success fw-semibold mt-1" id="monthlyDuePaidCount" style="font-size: 0.72rem;">0 នាក់ បានបង់រួច (0%)</div>
+                                    </div>
+                                </div>
+                                <!-- Card 4: Remaining Debt to Collect -->
+                                <div class="col-xl col-md-6 col-sm-6">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white monthly-due-kpi-card text-danger h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">នៅជំពាក់ត្រូវប្រមូល</span>
+                                            <div class="rounded-circle p-2 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                                <i class="fi fi-rr-hand-holding-usd"></i>
+                                            </div>
+                                        </div>
                                         <div class="fw-bold text-danger fs-3" id="monthlyDueTotalAmount">$0.00</div>
-                                        <div class="small text-muted mt-1">បំណុលដែលត្រូវប្រមូលក្នុងខែនេះ</div>
+                                        <div class="small text-danger fw-semibold mt-1" id="monthlyDueDebtCount" style="font-size: 0.72rem;">នៅជំពាក់៖ 0 នាក់</div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-info border-4 h-100">
-                                        <div class="small text-secondary fw-semibold mb-1">ត្រូវបង់ថ្ងៃនេះ (Due Today)</div>
-                                        <div class="fw-bold text-info fs-3" id="monthlyDueTodayCount">0 នាក់</div>
-                                        <div class="small text-muted mt-1" id="monthlyDueTodayAmount">ទឹកប្រាក់: $0.00</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white border-start border-warning border-4 h-100">
-                                        <div class="small text-secondary fw-semibold mb-1">ហួសកាលកំណត់ (Overdue)</div>
-                                        <div class="fw-bold text-warning fs-3" id="monthlyDueOverdueCount">0 នាក់</div>
-                                        <div class="small text-muted mt-1" id="monthlyDueOverdueAmount">ទឹកប្រាក់: $0.00</div>
+                                <!-- Card 5: Action Required (Today + Overdue) -->
+                                <div class="col-xl col-md-6 col-sm-12">
+                                    <div class="card border-0 shadow-sm p-3 rounded-4 bg-white monthly-due-kpi-card text-warning h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small text-secondary fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">ថ្ងៃនេះ & ហួសកំណត់</span>
+                                            <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                                <i class="fi fi-rr-alarm-clock"></i>
+                                            </div>
+                                        </div>
+                                        <div class="fw-bold text-warning fs-3" id="monthlyDueActionCount">0 នាក់</div>
+                                        <div class="small text-muted mt-1" style="font-size: 0.72rem;">
+                                            ថ្ងៃនេះ: <span class="text-primary fw-bold" id="monthlyDueTodayCount">0 នាក់</span> (<span id="monthlyDueTodayAmount">$0.00</span>) | ហួស: <span class="text-danger fw-bold" id="monthlyDueOverdueCount">0 នាក់</span> (<span id="monthlyDueOverdueAmount">$0.00</span>)
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -731,20 +770,21 @@
                                     </div>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0" id="monthlyDueTable">
-                                        <thead class="bg-dark text-white text-center">
+                                    <table class="table table-hover align-middle mb-0 monthly-due-table" id="monthlyDueTable">
+                                        <thead class="text-white text-center">
                                             <tr>
-                                                <th style="width: 50px;">ល.រ</th>
-                                                <th style="width: 90px;">អត្តលេខ</th>
+                                                <th style="width: 45px;">ល.រ</th>
+                                                <th style="width: 85px;">អត្តលេខ</th>
                                                 <th class="text-start px-3">ឈ្មោះសិស្ស (Student Name)</th>
-                                                <th style="width: 130px;">ផ្នែកសិក្សា</th>
-                                                <th style="width: 110px;">កម្រិត</th>
-                                                <th style="width: 120px;">ម៉ោងសិក្សា</th>
-                                                <th style="width: 130px;">គ្រូបន្ទុកថ្នាក់</th>
+                                                <th style="width: 65px;">ភេទ</th>
+                                                <th style="width: 120px;">ផ្នែកសិក្សា</th>
+                                                <th style="width: 95px;">កម្រិត</th>
+                                                <th style="width: 110px;">ម៉ោងសិក្សា</th>
+                                                <th style="width: 120px;">គ្រូបន្ទុកថ្នាក់</th>
                                                 <th style="width: 130px;">ថ្ងៃត្រូវបង់ (Due Date)</th>
-                                                <th style="width: 110px;">ទឹកប្រាក់</th>
-                                                <th style="width: 130px;">ស្ថានភាព</th>
-                                                <th style="width: 80px;">លម្អិត</th>
+                                                <th style="width: 140px;">ទឹកប្រាក់ប្រចាំខែ</th>
+                                                <th style="width: 135px;">ស្ថានភាព</th>
+                                                <th style="width: 70px;">លម្អិត</th>
                                             </tr>
                                         </thead>
                                         <tbody id="monthlyDueBody" class="text-center">
