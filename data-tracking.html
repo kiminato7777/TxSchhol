@@ -126,12 +126,13 @@
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="exportPaymentReportPDF('delay')"><i class="fi fi-rr-clock text-info"></i> សិស្សពន្យារការបង់ (Delay)</a></li>
                             <li><hr class="dropdown-divider my-2"></li>
                             <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍ត្រូវបង់ប្រចាំខែ (Monthly Due)</h6></li>
-                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="window.switchToMonthlyDueTab()"><i class="fi fi-rr-calendar-clock text-indigo" style="color: #6366f1;"></i> បើកតារាងត្រូវបង់ប្រចាំខែ (Open Tab)</a></li>
-                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger fw-bold" href="javascript:void(0)" onclick="window.generateMonthlyDuePDF()"><i class="fi fi-rr-file-pdf text-danger"></i> ទាញយក PDF ត្រូវបង់ប្រចាំខែ</a></li>
-                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-success fw-bold" href="javascript:void(0)" onclick="window.exportMonthlyDueExcel()"><i class="fi fi-rr-file-excel text-success"></i> នាំចេញ Excel ត្រូវបង់ប្រចាំខែ</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-primary fw-bold" href="javascript:void(0)" onclick="window.openMonthlyDueModal()"><i class="fi fi-rr-calendar-clock text-primary"></i> ទាញរបាយការណ៍បង់ប្រាក់ប្រចាំខែ (ជ្រើសរើសខែ/ឆ្នាំ)</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="window.switchToMonthlyDueTab()"><i class="fi fi-rr-table text-indigo" style="color: #6366f1;"></i> បើកតារាងត្រូវបង់ប្រចាំខែ (Open Tab)</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger fw-bold" href="javascript:void(0)" onclick="window.openMonthlyDueModal('pdf')"><i class="fi fi-rr-file-pdf text-danger"></i> ទាញយកជា PDF (ទម្រង់រដ្ឋបាល)</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-success fw-bold" href="javascript:void(0)" onclick="window.openMonthlyDueModal('excel')"><i class="fi fi-rr-file-excel text-success"></i> នាំចេញជា Excel (.xlsx)</a></li>
                             <li><hr class="dropdown-divider my-2"></li>
                             <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted">របាយការណ៍ប្រចាំខែ / ឆ្នាំ / គ្រូ</h6></li>
-                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadMonthlyReport()"><i class="fi fi-rr-calendar text-success"></i> របាយការណ៍ប្រចាំខែ (Monthly)</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="window.openMonthlyDueModal()"><i class="fi fi-rr-calendar text-success"></i> របាយការណ៍ប្រចាំខែ (Monthly Report)</a></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadYearlyReport()"><i class="fi fi-rr-calendar-lines text-success"></i> របាយការណ៍ប្រចាំឆ្នាំ (Yearly)</a></li>
                             <li><a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="downloadClassTeacherReport()"><i class="fi fi-rr-chalkboard-user text-info"></i> របាយការណ៍តាមគ្រូបន្ទុកថ្នាក់</a></li>
                             <li><hr class="dropdown-divider my-2"></li>
@@ -606,11 +607,11 @@
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <button class="btn rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.exportMonthlyDueExcel()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.9rem;" title="ទាញយកបញ្ជីសិស្សត្រូវបង់ប្រចាំខែជា Excel (.xlsx)">
+                                        <button class="btn rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.openMonthlyDueModal('excel')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.9rem;" title="ជ្រើសរើសខែដើម្បីទាញយកជា Excel (.xlsx)">
                                             <i class="fi fi-rr-file-excel"></i> <span>ទាញយក Excel (.xlsx)</span>
                                         </button>
-                                        <button class="btn rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.generateMonthlyDuePDF()" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); font-size: 0.9rem;" title="ទាញយកបញ្ជីសិស្សត្រូវបង់ប្រចាំខែជា PDF">
-                                            <i class="fi fi-rr-file-pdf"></i> <span>ទាញយកជា PDF</span>
+                                        <button class="btn rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.openMonthlyDueModal('pdf')" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); font-size: 0.9rem;" title="ជ្រើសរើសខែដើម្បីទាញយកជា PDF (ទម្រង់រដ្ឋបាល)">
+                                            <i class="fi fi-rr-file-pdf"></i> <span>ទាញយកជា PDF (ទម្រង់រដ្ឋបាល)</span>
                                         </button>
                                     </div>
                                 </div>
@@ -721,10 +722,10 @@
                                     </h6>
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
                                         <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold" id="monthlyDueTableBadge">0 នាក់</span>
-                                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.82rem;" title="ទាញយកបញ្ជីតារាងខែនេះជា Excel (.xlsx)">
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.openMonthlyDueModal('excel')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.82rem;" title="ជ្រើសរើសខែដើម្បីទាញយកជា Excel">
                                             <i class="fi fi-rr-file-excel"></i> <span>Excel</span>
                                         </button>
-                                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.generateMonthlyDuePDF()" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); font-size: 0.82rem;" title="ទាញយកបញ្ជីតារាងខែនេះជា PDF">
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.openMonthlyDueModal('pdf')" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); font-size: 0.82rem;" title="ជ្រើសរើសខែដើម្បីទាញយកជា PDF (ទម្រង់រដ្ឋបាល)">
                                             <i class="fi fi-rr-file-pdf"></i> <span>PDF</span>
                                         </button>
                                     </div>
@@ -1353,48 +1354,121 @@
 
     <!-- Monthly Due Report Modal -->
     <div class="modal fade" id="monthlyDueModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-                <div class="modal-header border-0 py-3" style="background-color: #8a0e5b; color: white;">
-                    <h5 class="modal-title fw-bold moul-font small"><i class="fi fi-rr-calendar-clock me-2"></i>ទាញរបាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ</h5>
+                <!-- Header -->
+                <div class="modal-header border-0 py-3 text-white" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-2.5 bg-white bg-opacity-20 rounded-3 text-white d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <i class="fi fi-rr-calendar-clock fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold moul-font mb-0" style="font-size: 1.05rem;">ទាញរបាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ</h5>
+                            <div class="small text-white-50" style="font-size: 0.8rem;">ជ្រើសរើសខែ និងឆ្នាំ ដើម្បីទាញយកជា Excel ឬ PDF (ទម្រង់រដ្ឋបាល)</div>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
+                <!-- Body -->
                 <div class="modal-body p-4 bg-light bg-opacity-50">
                     <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label fw-bold small text-muted moul-font mb-2">ជ្រើសរើសខែ (Select Month)</label>
-                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2 fw-bold" id="dueMonthSelect">
-                                <option value="1">មករា (January)</option>
-                                <option value="2">កុម្ភៈ (February)</option>
-                                <option value="3">មីនា (March)</option>
-                                <option value="4">មេសា (April)</option>
-                                <option value="5">ឧសភា (May)</option>
-                                <option value="6">មិថុនា (June)</option>
-                                <option value="7">កក្កដា (July)</option>
-                                <option value="8">សីហា (August)</option>
-                                <option value="9">កញ្ញា (September)</option>
-                                <option value="10">តុលា (October)</option>
-                                <option value="11">វិច្ឆិកា (November)</option>
-                                <option value="12">ធ្នូ (December)</option>
+                        <!-- Select Month -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">
+                                <i class="fi fi-rr-calendar me-1 text-primary"></i> ជ្រើសរើសខែ (Select Month)
+                            </label>
+                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2.5 fw-bold text-dark" id="dueMonthSelect" onchange="window.updateModalDueSummary()">
+                                <option value="1">ខែមករា (January)</option>
+                                <option value="2">ខែកុម្ភៈ (February)</option>
+                                <option value="3">ខែមីនា (March)</option>
+                                <option value="4">ខែមេសា (April)</option>
+                                <option value="5">ខែឧសភា (May)</option>
+                                <option value="6">ខែមិថុនា (June)</option>
+                                <option value="7">ខែកក្កដា (July)</option>
+                                <option value="8">ខែសីហា (August)</option>
+                                <option value="9">ខែកញ្ញា (September)</option>
+                                <option value="10">ខែតុលា (October)</option>
+                                <option value="11" selected>ខែវិច្ឆិកា (November)</option>
+                                <option value="12">ខែធ្នូ (December)</option>
                             </select>
                         </div>
+
+                        <!-- Select Year -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">
+                                <i class="fi fi-rr-calendar-lines me-1 text-primary"></i> ជ្រើសរើសឆ្នាំ (Select Year)
+                            </label>
+                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2.5 fw-bold text-dark" id="dueYearSelect" onchange="window.updateModalDueSummary()">
+                                <option value="2024">ឆ្នាំ ២០២៤</option>
+                                <option value="2025">ឆ្នាំ ២០២៥</option>
+                                <option value="2026" selected>ឆ្នាំ ២០២៦</option>
+                                <option value="2027">ឆ្នាំ ២០២៧</option>
+                                <option value="2028">ឆ្នាំ ២០២៨</option>
+                            </select>
+                        </div>
+
+                        <!-- Select Filter Scope -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">
+                                <i class="fi fi-rr-filter me-1 text-info"></i> ប្រភេទតម្រង (Filter Scope)
+                            </label>
+                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2 fw-semibold text-dark" id="dueFilterSelect" onchange="window.updateModalDueSummary()">
+                                <option value="all" selected>សិស្សទាំងអស់ដែលត្រូវបង់ក្នុងខែ (All Due)</option>
+                                <option value="today">ត្រូវបង់ថ្ងៃនេះ (Due Today)</option>
+                                <option value="overdue">ហួសកាលកំណត់ (Overdue)</option>
+                                <option value="warning">ជិតដល់ថ្ងៃបង់ (Within 10 Days)</option>
+                            </select>
+                        </div>
+
+                        <!-- Option: Include Past Overdue -->
+                        <div class="col-md-6 d-flex align-items-center">
+                            <div class="form-check form-switch pt-md-3">
+                                <input class="form-check-input" type="checkbox" id="dueIncludePastModalCheck" onchange="window.updateModalDueSummary()" style="cursor: pointer; width: 2.2em; height: 1.2em;">
+                                <label class="form-check-label fw-bold small text-secondary ms-1" for="dueIncludePastModalCheck" style="cursor: pointer;">
+                                    <i class="fi fi-rr-time-past text-danger me-1"></i> រួមបញ្ចូលសិស្សជំពាក់កន្លងមក (Past Debts)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Live Statistics Preview Card -->
                         <div class="col-12">
-                            <label class="form-label fw-bold small text-muted moul-font mb-2">ជ្រើសរើសឆ្នាំ (Select Year)</label>
-                            <input type="number" class="form-control border-0 bg-white shadow-sm rounded-3 py-2 fw-bold" id="dueYearSelect" value="2026">
+                            <div class="card border-0 rounded-4 shadow-sm p-3 bg-white border-start border-4 border-primary">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <div class="small fw-bold text-muted text-uppercase" style="letter-spacing: 0.5px;">ទិន្នន័យសង្ខេបសម្រាប់ខែដែលបានជ្រើសរើស (Live Preview)</div>
+                                        <div class="small text-muted mt-1" id="modalDueDetailText">កំពុងគណនាទិន្នន័យ...</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="text-end">
+                                            <div class="small text-secondary fw-semibold">ចំនួនសិស្ស</div>
+                                            <span id="modalDueCountBadge" class="badge bg-primary fs-6 px-3 py-1.5 rounded-pill">0 នាក់</span>
+                                        </div>
+                                        <div class="text-end ms-2">
+                                            <div class="small text-secondary fw-semibold">ទឹកប្រាក់សរុប</div>
+                                            <span id="modalDueAmountBadge" class="badge bg-danger fs-6 px-3 py-1.5 rounded-pill">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Footer Actions -->
                 <div class="modal-footer border-0 bg-white p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-3 fw-bold" data-bs-dismiss="modal">បិទ</button>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
-                            <i class="fi fi-rr-table me-1"></i>មើលក្នុងតារាង (View Table)
+                    <button type="button" class="btn btn-light rounded-pill px-3 fw-bold" data-bs-dismiss="modal">
+                        <i class="fi fi-rr-cross-small me-1"></i>បិទ
+                    </button>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-bold shadow-sm hover-scale" onclick="bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
+                            <i class="fi fi-rr-table me-1.5"></i>មើលក្នុងតារាង (View Table)
                         </button>
-                        <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-bold shadow-sm" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
-                            <i class="fi fi-rr-file-excel me-1"></i>Excel
+                        <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'));">
+                            <i class="fi fi-rr-file-excel"></i><span>ទាញយក Excel (.xlsx)</span>
                         </button>
-                        <button type="button" class="btn rounded-pill px-4 text-white fw-bold shadow-sm" style="background-color: #8a0e5b;" onclick="window.generateMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
-                            <i class="fi fi-rr-file-pdf me-2"></i>ទាញយក PDF
+                        <button type="button" class="btn rounded-pill px-4 py-2 text-white fw-bold shadow-sm hover-scale d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);" onclick="window.executeMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'));">
+                            <i class="fi fi-rr-file-pdf"></i><span>ទាញយក PDF (ទម្រង់រដ្ឋបាល)</span>
                         </button>
                     </div>
                 </div>

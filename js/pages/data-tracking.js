@@ -10961,47 +10961,51 @@ function generateStandardPDF(students, title, subtitle = '') {
     win.document.close();
 }
 
-function downloadMonthlyReport(type) {
-    const currentYear = new Date().getFullYear();
-    const promptMonth = prompt("សូមបញ្ចូលខែ (1-12):", new Date().getMonth() + 1);
-    if (!promptMonth) return;
+window.downloadMonthlyReport = function(type) {
+    if (type === 'registration') {
+        const currentYear = new Date().getFullYear();
+        const promptMonth = prompt("សូមបញ្ចូលខែ (1-12):", new Date().getMonth() + 1);
+        if (!promptMonth) return;
 
-    const promptYear = prompt("សូមបញ្ចូលឆ្នាំ:", currentYear);
-    if (!promptYear) return;
+        const promptYear = prompt("សូមបញ្ចូលឆ្នាំ:", currentYear);
+        if (!promptYear) return;
 
-    const month = parseInt(promptMonth);
-    const year = parseInt(promptYear);
+        const month = parseInt(promptMonth);
+        const year = parseInt(promptYear);
 
-    if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
-        return showAlert('ទិន្នន័យមិនត្រឹមត្រូវ', 'danger');
-    }
+        if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
+            return showAlert('ទិន្នន័យមិនត្រឹមត្រូវ', 'danger');
+        }
 
-    const students = Object.values(allStudentsData).filter(s => {
-        if (!s.startDate) return false;
-        try {
-            // Handle YYYY-MM-DD or DD/MM/YYYY
-            let d;
-            if (s.startDate.includes('/')) {
-                const parts = s.startDate.split('/');
-                d = new Date(parts[2], parts[1] - 1, parts[0]); // DD/MM/YYYY
-            } else {
-                d = new Date(s.startDate);
-            }
-            return d.getMonth() + 1 === month && d.getFullYear() === year;
-        } catch (e) { return false; }
-    });
+        const students = Object.values(allStudentsData).filter(s => {
+            if (!s.startDate) return false;
+            try {
+                // Handle YYYY-MM-DD or DD/MM/YYYY
+                let d;
+                if (s.startDate.includes('/')) {
+                    const parts = s.startDate.split('/');
+                    d = new Date(parts[2], parts[1] - 1, parts[0]); // DD/MM/YYYY
+                } else {
+                    d = new Date(s.startDate);
+                }
+                return d.getMonth() + 1 === month && d.getFullYear() === year;
+            } catch (e) { return false; }
+        });
 
-    if (students.length === 0) return showAlert(`គ្មានសិស្សចុះឈ្មោះក្នុងខែ ${month}/${year}`, 'info');
+        if (students.length === 0) return showAlert(`គ្មានសិស្សចុះឈ្មោះក្នុងខែ ${month}/${year}`, 'info');
 
-    const title = `របាយការណ៍ប្រចាំខែ ${month} ឆ្នាំ ${year}`;
-    const subtitle = `សិស្សចុះឈ្មោះថ្មី (New Registrations)`;
+        const title = `របាយការណ៍ប្រចាំខែ ${month} ឆ្នាំ ${year}`;
+        const subtitle = `សិស្សចុះឈ្មោះថ្មី (New Registrations)`;
 
-    if (type === 'pdf') {
-        generateStandardPDF(students, title, subtitle);
+        if (type === 'pdf') {
+            generateStandardPDF(students, title, subtitle);
+        } else {
+            exportToExcel(students, `Monthly_Report_${month}_${year}`);
+        }
     } else {
-        exportToExcel(students, `Monthly_Report_${month}_${year}`);
+        window.openMonthlyDueModal(type);
     }
-}
+};
 
 function downloadYearlyReport(type) {
     const currentYear = new Date().getFullYear();
@@ -12829,19 +12833,57 @@ margin: 0;
         win.document.close();
     };
 
-    window.openMonthlyDueModal = () => {
-        const d = new Date();
-        $('#dueMonthSelect').val(d.getMonth() + 1);
-        $('#dueYearSelect').val(d.getFullYear());
-        const modal = new bootstrap.Modal(document.getElementById('monthlyDueModal'));
-        modal.show();
+    window.updateModalDueSummary = function() {
+        const month = parseInt($('#dueMonthSelect').val()) || (new Date().getMonth() + 1);
+        const year = parseInt($('#dueYearSelect').val()) || new Date().getFullYear();
+        const filter = $('#dueFilterSelect').val() || 'all';
+        const includePast = $('#dueIncludePastModalCheck').is(':checked');
+
+        if (typeof window.getMonthlyDueStudentsData !== 'function') return;
+
+        const data = window.getMonthlyDueStudentsData(month, year, filter, includePast);
+        const totalAmount = data.records.reduce((sum, r) => sum + (r.debt || 0), 0);
+
+        const countEl = document.getElementById('modalDueCountBadge');
+        const amountEl = document.getElementById('modalDueAmountBadge');
+        const detailEl = document.getElementById('modalDueDetailText');
+
+        if (countEl) countEl.innerText = `${data.records.length} នាក់`;
+        if (amountEl) amountEl.innerText = `${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (detailEl) {
+            detailEl.innerText = `ត្រូវបង់ថ្ងៃនេះ: ${data.kpis.todayCount} នាក់ | ហួសកំណត់: ${data.kpis.overdueCount} នាក់ | ជិតដល់ថ្ងៃ: ${data.kpis.warningCount} នាក់`;
+        }
     };
 
-    window.generateMonthlyDuePDF = async (targetMonth, targetYear) => {
-        const month = targetMonth || parseInt($('#monthlyDueMonthSelect').val() || $('#dueMonthSelect').val() || (new Date().getMonth() + 1));
-        const year = targetYear || parseInt($('#monthlyDueYearSelect').val() || $('#dueYearSelect').val() || new Date().getFullYear());
+    window.openMonthlyDueModal = function(defaultAction = null) {
+        const d = new Date();
+        const curMonth = (d.getMonth() + 1).toString();
+        const curYear = d.getFullYear().toString();
+
+        const paneMonth = $('#monthlyDueMonthSelect').val();
+        const paneYear = $('#monthlyDueYearSelect').val();
+
+        $('#dueMonthSelect').val(paneMonth || curMonth);
+        $('#dueYearSelect').val(paneYear || curYear);
+
+        const activeFilter = window.CURRENT_MONTHLY_DUE_FILTER || 'all';
+        $('#dueFilterSelect').val(activeFilter);
+        $('#dueIncludePastModalCheck').prop('checked', window.CURRENT_MONTHLY_INCLUDE_PAST || false);
+
+        window.updateModalDueSummary();
+
+        const modalEl = document.getElementById('monthlyDueModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    };
+
+    window.generateMonthlyDuePDF = async (targetMonth, targetYear, targetFilter, targetIncludePast) => {
+        const month = targetMonth || parseInt($('#dueMonthSelect').val() || $('#monthlyDueMonthSelect').val() || (new Date().getMonth() + 1));
+        const year = targetYear || parseInt($('#dueYearSelect').val() || $('#monthlyDueYearSelect').val() || new Date().getFullYear());
         if (typeof window.executeMonthlyDuePDF === 'function') {
-            return window.executeMonthlyDuePDF(month, year);
+            return window.executeMonthlyDuePDF(month, year, targetFilter, targetIncludePast);
         }
     };
 
@@ -17665,13 +17707,15 @@ window.filterMonthlyDueTable = function() {
     if (badge) badge.innerText = `${visibleCount} នាក់`;
 };
 
-window.exportMonthlyDueExcel = function(targetMonth, targetYear) {
-    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || parseInt($('#dueMonthSelect').val()) || (new Date().getMonth() + 1));
-    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || parseInt($('#dueYearSelect').val()) || new Date().getFullYear());
+window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, targetIncludePast) {
+    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#dueMonthSelect').val()) || parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (parseInt($('#dueYearSelect').val()) || parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
 
-    const currentFilter = window.CURRENT_MONTHLY_DUE_FILTER || 'all';
-    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, window.CURRENT_MONTHLY_INCLUDE_PAST);
+    const currentFilter = targetFilter !== undefined && targetFilter !== null ? targetFilter : ($('#dueFilterSelect').val() || window.CURRENT_MONTHLY_DUE_FILTER || 'all');
+    const includePast = targetIncludePast !== undefined && targetIncludePast !== null ? Boolean(targetIncludePast) : ($('#dueIncludePastModalCheck').length ? $('#dueIncludePastModalCheck').is(':checked') : Boolean(window.CURRENT_MONTHLY_INCLUDE_PAST));
+
+    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
 
     if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
@@ -17729,9 +17773,9 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear) {
     XLSX.writeFile(wb, `Monthly_Due_Report_${month}_${year}.xlsx`);
 };
 
-window.executeMonthlyDuePDF = async function(targetMonth, targetYear) {
-    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || parseInt($('#dueMonthSelect').val()) || (new Date().getMonth() + 1));
-    const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || parseInt($('#dueYearSelect').val()) || new Date().getFullYear());
+window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilter, targetIncludePast) {
+    const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#dueMonthSelect').val()) || parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
+    const year = targetYear ? parseInt(targetYear) : (parseInt($('#dueYearSelect').val()) || parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     if (!month || !year) return;
 
     const modalEl = document.getElementById('monthlyDueModal');
@@ -17743,8 +17787,10 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear) {
     const khmerMonthsNames = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
     const monthName = khmerMonthsNames[month - 1];
 
-    const currentFilter = window.CURRENT_MONTHLY_DUE_FILTER || 'all';
-    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, window.CURRENT_MONTHLY_INCLUDE_PAST);
+    const currentFilter = targetFilter !== undefined && targetFilter !== null ? targetFilter : ($('#dueFilterSelect').val() || window.CURRENT_MONTHLY_DUE_FILTER || 'all');
+    const includePast = targetIncludePast !== undefined && targetIncludePast !== null ? Boolean(targetIncludePast) : ($('#dueIncludePastModalCheck').length ? $('#dueIncludePastModalCheck').is(':checked') : Boolean(window.CURRENT_MONTHLY_INCLUDE_PAST));
+
+    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
 
     if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
