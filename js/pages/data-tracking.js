@@ -14647,21 +14647,7 @@ window.CURRENT_UNIFIED_FILTER = 'all';
 window.getCleanStudentDebtRemark = function (s) {
     if (!s) return '-';
 
-    // 1. Explicit paid or finished enrollment status or zero debt
-    const pStatus = (s.paymentStatus || '').toLowerCase().trim();
-    const enStatus = (s.enrollmentStatus || '').toLowerCase().trim();
-    const debt = typeof calculateRemainingAmount === 'function' ? calculateRemainingAmount(s) : 0;
-
-    const isPaid = (debt <= 0.01 && (pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidfull' || pStatus === 'paidoff' || pStatus === 'បង់រួច' || pStatus === 'បង់រួចរាល់'))
-        || enStatus === 'paidoff'
-        || enStatus === 'graduated'
-        || (debt <= 0.01 && typeof getPaymentStatus === 'function' && getPaymentStatus(s).status === 'paid');
-
-    if (isPaid) {
-        return '-';
-    }
-
-    // 2. Resolve remark or note: check s.remark -> s.note -> s.postponedReason -> latest installment note
+    // Resolve remark or note: check s.remark -> s.note -> s.postponedReason -> latest installment note -> healthInfo
     let r = (s.remark || '').trim();
     if (!r || r === '-') {
         if (s.note && s.note.trim() && s.note.trim() !== '-') {
@@ -14670,8 +14656,10 @@ window.getCleanStudentDebtRemark = function (s) {
             r = s.postponedReason.trim();
         } else if (s.installments) {
             const instList = Array.isArray(s.installments) ? s.installments : Object.values(s.installments);
-            const lastWithNote = [...instList].reverse().find(i => i && i.note && i.note.trim() && i.note.trim() !== '-');
-            if (lastWithNote) r = lastWithNote.note.trim();
+            const lastWithNote = [...instList].reverse().find(i => i && ((i.note && i.note.trim() && i.note.trim() !== '-') || (i.remark && i.remark.trim() && i.remark.trim() !== '-')));
+            if (lastWithNote) r = (lastWithNote.note || lastWithNote.remark || '').trim();
+        } else if (s.healthInfo && s.healthInfo.trim() && s.healthInfo.trim() !== '-') {
+            r = s.healthInfo.trim();
         }
     }
     if (!r || r === '-') return '-';
@@ -14743,28 +14731,8 @@ function renderUnifiedDebtList(students) {
         const pStatus = (s.paymentStatus || '').toLowerCase().trim();
         const enStatus = (s.enrollmentStatus || '').toLowerCase().trim();
 
-        // សិស្សត្រូវបានចាត់ទុកថាបង់រួចដាច់ស្រេច លុះត្រាតែគ្មានបំណុល (debt <= 0.01) ឬ statusObj.status === 'paid' ឬ filter ក្នុង tab 'បង់រួច'
-        const isStudentPaid = (debt <= 0.01 && statusObj.status === 'paid')
-            || enStatus === 'paidoff'
-            || enStatus === 'graduated'
-            || window.CURRENT_UNIFIED_FILTER === 'paid_off';
-
-        // ប្រសិនជាសិស្សបានបង់ប្រាក់រួចដាច់ស្រេច ក្នុងសម្គាល់ ត្រូវ clear ចេញពី Firebase និង Memory
-        if (isStudentPaid && s.remark) {
-            s.remark = '';
-            if (allStudentsData && allStudentsData[s.key]) allStudentsData[s.key].remark = '';
-            if (Array.isArray(window.rawStudentsArray)) {
-                const rawSt = window.rawStudentsArray.find(st => st && st.key === s.key);
-                if (rawSt) rawSt.remark = '';
-            }
-            if (s.key && typeof studentsRef !== 'undefined') {
-                studentsRef.child(s.key).update({ remark: '' }).catch(() => { });
-            }
-        }
-
-        // បើបង់រួចបង្ហាញ '-' ប៉ុន្តែបើសិស្សនៅជំពាក់ ត្រូវបង្ហាញសម្គាល់ ឬ Note ដែលបានបញ្ចូលឱ្យជាប់ (ធ្វើឱ្យជាប់ក្នុងសម្គាល់ 100%)
-        const cleanRemark = window.getCleanStudentDebtRemark(s);
-        const displayRemark = isStudentPaid ? '-' : cleanRemark;
+        // ទាញយកសម្គាល់ ឬ Note ដែលបានបញ្ចូល (ធានាបង្ហាញ 100% មិនបាត់បង់)
+        const displayRemark = window.getCleanStudentDebtRemark(s) || '-';
 
 
         // Define premium labels
@@ -14831,11 +14799,11 @@ ${statusObj.text}
                     <span class="amount-text">$${debt.toFixed(2)}</span>
                 </td>
                 <td class="text-start px-3">
-                    <div class="remark-pill shadow-sm ${isStudentPaid ? 'opacity-50' : ''}" 
+                    <div class="remark-pill shadow-sm" 
  onclick="updateDebtRemark('${s.key}', \`${(displayRemark === '-' ? '' : displayRemark).replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)"
- title="${isStudentPaid ? 'សិស្សបានបង់ប្រាក់រួច' : 'ចុចដើម្បីកែសម្រួលសម្គាល់'}">
+ title="ចុចដើម្បីកែសម្រួលសម្គាល់">
 <div class="d-flex align-items-center justify-content-between">
-    <span class="small ${displayRemark !== '-' ? 'text-dark fw-semibold' : 'text-muted'}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayRemark}</span>
+    <span class="small ${displayRemark !== '-' ? 'text-dark fw-bold' : 'text-muted'}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;" title="${displayRemark !== '-' ? displayRemark : ''}">${displayRemark}</span>
     <i class="fi fi-rr-edit-alt ms-2 opacity-50 remark-edit-icon" style="font-size: 0.75rem;"></i>
 </div>
                     </div>
