@@ -1473,6 +1473,39 @@
                             </div>
                         </div>
 
+                        <!-- Grouping Mode (PDF & Reports) -->
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-primary mb-1">
+                                <i class="fi fi-rr-apps-sort me-1 text-primary"></i> របៀបបែងចែករបាយការណ៍ (Categorize & Group By)
+                            </label>
+                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2 fw-bold text-dark" id="dueGroupBySelect" onchange="window.updateModalDueSummary()">
+                                <option value="teacher_time" selected>⭐ បែងចែកតាម គ្រូបន្ទុកថ្នាក់ & ម៉ោងសិក្សា (Teacher & Study Time)</option>
+                                <option value="teacher">បែងចែកតាម គ្រូបន្ទុកថ្នាក់តែមួយ (By Teacher Only)</option>
+                                <option value="time">បែងចែកតាម ម៉ោងសិក្សាតែមួយ (By Study Time Only)</option>
+                                <option value="none">បញ្ជីរួមតែមួយ មិនបែងចែក (Unified Flat List)</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Specific Teacher -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">
+                                <i class="fi fi-rr-chalkboard-user me-1 text-success"></i> ច្រោះតាមគ្រូបន្ទុកថ្នាក់ (Filter Teacher)
+                            </label>
+                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2 fw-semibold text-dark" id="dueTeacherSelect" onchange="window.updateModalDueSummary()">
+                                <option value="all" selected>គ្រូបន្ទុកថ្នាក់ទាំងអស់ (All Teachers)</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Specific Study Time -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">
+                                <i class="fi fi-rr-clock me-1 text-warning"></i> ច្រោះតាមម៉ោងសិក្សា (Filter Study Time)
+                            </label>
+                            <select class="form-select border-0 bg-white shadow-sm rounded-3 py-2 fw-semibold text-dark" id="dueTimeSelect" onchange="window.updateModalDueSummary()">
+                                <option value="all" selected>គ្រប់ម៉ោងសិក្សាទាំងអស់ (All Study Times)</option>
+                            </select>
+                        </div>
+
                         <!-- Live Statistics Preview Card -->
                         <div class="col-12">
                             <div class="card border-0 rounded-4 shadow-sm p-3 bg-white border-start border-4 border-primary">
@@ -1506,10 +1539,10 @@
                         <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-bold shadow-sm hover-scale" onclick="bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
                             <i class="fi fi-rr-table me-1.5"></i>មើលក្នុងតារាង (View Table)
                         </button>
-                        <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'));">
+                        <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'), $('#dueGroupBySelect').val(), $('#dueTeacherSelect').val(), $('#dueTimeSelect').val());">
                             <i class="fi fi-rr-file-excel"></i><span>ទាញយក Excel (.xlsx)</span>
                         </button>
-                        <button type="button" class="btn rounded-pill px-4 py-2 text-white fw-bold shadow-sm hover-scale d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);" onclick="window.executeMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'));">
+                        <button type="button" class="btn rounded-pill px-4 py-2 text-white fw-bold shadow-sm hover-scale d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);" onclick="window.executeMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'), $('#dueGroupBySelect').val(), $('#dueTeacherSelect').val(), $('#dueTimeSelect').val());">
                             <i class="fi fi-rr-file-pdf"></i><span>ទាញយក PDF (ទម្រង់រដ្ឋបាល)</span>
                         </button>
                     </div>

@@ -2318,13 +2318,13 @@
 }
 
 .monthly-due-kpi-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     width: 4px;
     height: 100%;
-    background: currentColor;
+    background-color: currentColor;
     opacity: 0.85;
 }
 

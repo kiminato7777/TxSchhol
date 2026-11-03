@@ -12845,23 +12845,81 @@ margin: 0;
         win.document.close();
     };
 
+    window.populateMonthlyDueTeacherAndTimeFilters = function() {
+        const teacherSelect = $('#dueTeacherSelect');
+        const timeSelect = $('#dueTimeSelect');
+        if (!teacherSelect.length || !timeSelect.length) return;
+
+        const currentTeacher = teacherSelect.val() || 'all';
+        const currentTime = timeSelect.val() || 'all';
+
+        const teachers = new Set();
+        const times = new Set();
+
+        if (Array.isArray(rawStudentsArray)) {
+            rawStudentsArray.forEach(s => {
+                if (!s) return;
+                const t = (s.teacherName || s.homeroomTeacher || '').trim();
+                if (t && t !== '-' && t !== 'មិនមាន' && t !== 'undefined' && t !== 'null') teachers.add(t);
+                const tm = (s.studyTime || '').trim();
+                if (tm && tm !== '-' && tm !== 'មិនមាន' && tm !== 'undefined' && tm !== 'null') times.add(tm);
+            });
+        }
+
+        const sortedTeachers = Array.from(teachers).sort((a, b) => a.localeCompare(b, 'km'));
+        const sortedTimes = Array.from(times).sort();
+
+        let teacherHtml = '<option value="all">គ្រូបន្ទុកថ្នាក់ទាំងអស់ (All Teachers)</option>';
+        sortedTeachers.forEach(t => {
+            teacherHtml += `<option value="${t}">${t}</option>`;
+        });
+        teacherSelect.html(teacherHtml);
+        if (teachers.has(currentTeacher)) teacherSelect.val(currentTeacher);
+        else teacherSelect.val('all');
+
+        let timeHtml = '<option value="all">គ្រប់ម៉ោងសិក្សាទាំងអស់ (All Study Times)</option>';
+        sortedTimes.forEach(tm => {
+            timeHtml += `<option value="${tm}">${tm}</option>`;
+        });
+        timeSelect.html(timeHtml);
+        if (times.has(currentTime)) timeSelect.val(currentTime);
+        else timeSelect.val('all');
+    };
+
     window.updateModalDueSummary = function() {
         const month = parseInt($('#dueMonthSelect').val()) || (new Date().getMonth() + 1);
         const year = parseInt($('#dueYearSelect').val()) || new Date().getFullYear();
         const filter = $('#dueFilterSelect').val() || 'all';
         const includePast = $('#dueIncludePastModalCheck').is(':checked');
+        const selectedTeacher = $('#dueTeacherSelect').val() || 'all';
+        const selectedTime = $('#dueTimeSelect').val() || 'all';
 
         if (typeof window.getMonthlyDueStudentsData !== 'function') return;
 
-        const data = window.getMonthlyDueStudentsData(month, year, filter, includePast);
-        const totalAmount = data.records.reduce((sum, r) => sum + (r.debt || 0), 0);
+        let data = window.getMonthlyDueStudentsData(month, year, filter, includePast);
+
+        // Apply teacher & study time filters if chosen
+        if (selectedTeacher && selectedTeacher !== 'all') {
+            data.records = data.records.filter(r => {
+                const t = (r.student.teacherName || r.student.homeroomTeacher || '').trim();
+                return t === selectedTeacher;
+            });
+        }
+        if (selectedTime && selectedTime !== 'all') {
+            data.records = data.records.filter(r => {
+                const tm = (r.student.studyTime || '').trim();
+                return tm === selectedTime;
+            });
+        }
+
+        const totalAmount = data.records.reduce((sum, r) => sum + (r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0)), 0);
 
         const countEl = document.getElementById('modalDueCountBadge');
         const amountEl = document.getElementById('modalDueAmountBadge');
         const detailEl = document.getElementById('modalDueDetailText');
 
         if (countEl) countEl.innerText = `${data.records.length} នាក់`;
-        if (amountEl) amountEl.innerText = `${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (amountEl) amountEl.innerText = `$${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         if (detailEl) {
             detailEl.innerText = `ត្រូវបង់ថ្ងៃនេះ: ${data.kpis.todayCount} នាក់ | ហួសកំណត់: ${data.kpis.overdueCount} នាក់ | ជិតដល់ថ្ងៃ: ${data.kpis.warningCount} នាក់ | បង់រួច: ${data.subCounts.paid} នាក់`;
         }
@@ -12882,6 +12940,10 @@ margin: 0;
         $('#dueFilterSelect').val(activeFilter);
         $('#dueIncludePastModalCheck').prop('checked', window.CURRENT_MONTHLY_INCLUDE_PAST || false);
 
+        if (typeof window.populateMonthlyDueTeacherAndTimeFilters === 'function') {
+            window.populateMonthlyDueTeacherAndTimeFilters();
+        }
+
         window.updateModalDueSummary();
 
         const modalEl = document.getElementById('monthlyDueModal');
@@ -12891,11 +12953,11 @@ margin: 0;
         }
     };
 
-    window.generateMonthlyDuePDF = async (targetMonth, targetYear, targetFilter, targetIncludePast) => {
+    window.generateMonthlyDuePDF = async (targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime) => {
         const month = targetMonth || parseInt($('#dueMonthSelect').val() || $('#monthlyDueMonthSelect').val() || (new Date().getMonth() + 1));
         const year = targetYear || parseInt($('#dueYearSelect').val() || $('#monthlyDueYearSelect').val() || new Date().getFullYear());
         if (typeof window.executeMonthlyDuePDF === 'function') {
-            return window.executeMonthlyDuePDF(month, year, targetFilter, targetIncludePast);
+            return window.executeMonthlyDuePDF(month, year, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime);
         }
     };
 
@@ -17984,15 +18046,30 @@ window.filterMonthlyDueTable = function() {
     if (badge) badge.innerText = `${visibleCount} នាក់`;
 };
 
-window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, targetIncludePast) {
+window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime) {
     const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#dueMonthSelect').val()) || parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
     const year = targetYear ? parseInt(targetYear) : (parseInt($('#dueYearSelect').val()) || parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
 
     const currentFilter = targetFilter !== undefined && targetFilter !== null ? targetFilter : ($('#dueFilterSelect').val() || window.CURRENT_MONTHLY_DUE_FILTER || 'all');
     const includePast = targetIncludePast !== undefined && targetIncludePast !== null ? Boolean(targetIncludePast) : ($('#dueIncludePastModalCheck').length ? $('#dueIncludePastModalCheck').is(':checked') : Boolean(window.CURRENT_MONTHLY_INCLUDE_PAST));
+    const selectedTeacher = targetTeacher || $('#dueTeacherSelect').val() || 'all';
+    const selectedTime = targetTime || $('#dueTimeSelect').val() || 'all';
 
-    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
+    let data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
+
+    if (selectedTeacher && selectedTeacher !== 'all') {
+        data.records = data.records.filter(r => {
+            const t = (r.student.teacherName || r.student.homeroomTeacher || '').trim();
+            return t === selectedTeacher;
+        });
+    }
+    if (selectedTime && selectedTime !== 'all') {
+        data.records = data.records.filter(r => {
+            const tm = (r.student.studyTime || '').trim();
+            return tm === selectedTime;
+        });
+    }
 
     if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
@@ -18006,6 +18083,21 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
         return alert('XLSX library not loaded!');
     }
 
+    // Sort by Teacher, then Study Time, then Student Name / ID
+    data.records.sort((a, b) => {
+        const tA = (a.student.teacherName || a.student.homeroomTeacher || '').trim();
+        const tB = (b.student.teacherName || b.student.homeroomTeacher || '').trim();
+        const compT = tA.localeCompare(tB, 'km');
+        if (compT !== 0) return compT;
+
+        const timeA = (a.student.studyTime || '').trim();
+        const timeB = (b.student.studyTime || '').trim();
+        const compTime = timeA.localeCompare(timeB);
+        if (compTime !== 0) return compTime;
+
+        return String(a.student.displayId || '').localeCompare(String(b.student.displayId || ''), undefined, { numeric: true });
+    });
+
     let totalDueSum = 0;
     let totalFeeSum = 0;
     let totalPaidSum = 0;
@@ -18016,6 +18108,8 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
         totalPaidSum += (r.paidAmount || 0);
         return {
             'ល.រ': idx + 1,
+            'គ្រូបន្ទុកថ្នាក់': s.teacherName || s.homeroomTeacher || 'មិនទាន់កំណត់គ្រូ',
+            'ម៉ោងសិក្សា': s.studyTime || 'មិនទាន់កំណត់ម៉ោង',
             'អត្តលេខ': s.displayId || '',
             'គោត្តនាម-នាម': `${s.lastName || ''} ${s.firstName || ''}`,
             'ឈ្មោះចិន': `${s.chineseLastName || ''}${s.chineseFirstName || ''}`,
@@ -18023,8 +18117,6 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
             'ភេទ': (s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី',
             'ផ្នែកសិក្សា': isStudentTrilingual(s) ? 'ចំណេះដឹងទូទៅ' : (isStudentChineseFullTime(s) ? 'ចិនពេញម៉ោង' : 'ក្រៅម៉ោង'),
             'កម្រិត': s.studyLevel || '',
-            'ម៉ោងសិក្សា': s.studyTime || '',
-            'គ្រូបន្ទុកថ្នាក់': s.teacherName || s.homeroomTeacher || '',
             'ថ្ងៃត្រូវបង់': convertToKhmerDate(r.dateObj) || r.rawDate,
             'ដំណាក់កាល': r.stageLabel || '-',
             'ទឹកប្រាក់ត្រូវបង់ ($)': parseFloat(r.monthlyFee.toFixed(2)),
@@ -18037,6 +18129,8 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
     // Summary Total Row
     exportRows.push({
         'ល.រ': 'សរុប',
+        'គ្រូបន្ទុកថ្នាក់': '',
+        'ម៉ោងសិក្សា': '',
         'អត្តលេខ': `${data.records.length} នាក់`,
         'គោត្តនាម-នាម': '',
         'ឈ្មោះចិន': '',
@@ -18044,8 +18138,6 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
         'ភេទ': '',
         'ផ្នែកសិក្សា': '',
         'កម្រិត': '',
-        'ម៉ោងសិក្សា': '',
-        'គ្រូបន្ទុកថ្នាក់': '',
         'ថ្ងៃត្រូវបង់': 'សរុបទឹកប្រាក់៖',
         'ដំណាក់កាល': '',
         'ទឹកប្រាក់ត្រូវបង់ ($)': parseFloat(totalFeeSum.toFixed(2)),
@@ -18060,7 +18152,7 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
     XLSX.writeFile(wb, `Monthly_Due_Report_${month}_${year}.xlsx`);
 };
 
-window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilter, targetIncludePast) {
+window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime) {
     const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#dueMonthSelect').val()) || parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
     const year = targetYear ? parseInt(targetYear) : (parseInt($('#dueYearSelect').val()) || parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     if (!month || !year) return;
@@ -18076,8 +18168,25 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
 
     const currentFilter = targetFilter !== undefined && targetFilter !== null ? targetFilter : ($('#dueFilterSelect').val() || window.CURRENT_MONTHLY_DUE_FILTER || 'all');
     const includePast = targetIncludePast !== undefined && targetIncludePast !== null ? Boolean(targetIncludePast) : ($('#dueIncludePastModalCheck').length ? $('#dueIncludePastModalCheck').is(':checked') : Boolean(window.CURRENT_MONTHLY_INCLUDE_PAST));
+    const groupBy = targetGroupBy || $('#dueGroupBySelect').val() || 'teacher_time';
+    const selectedTeacher = targetTeacher || $('#dueTeacherSelect').val() || 'all';
+    const selectedTime = targetTime || $('#dueTimeSelect').val() || 'all';
 
-    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
+    let data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
+
+    // Apply teacher and study time filters if specified
+    if (selectedTeacher && selectedTeacher !== 'all') {
+        data.records = data.records.filter(r => {
+            const t = (r.student.teacherName || r.student.homeroomTeacher || '').trim();
+            return t === selectedTeacher;
+        });
+    }
+    if (selectedTime && selectedTime !== 'all') {
+        data.records = data.records.filter(r => {
+            const tm = (r.student.studyTime || '').trim();
+            return tm === selectedTime;
+        });
+    }
 
     if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
@@ -18091,6 +18200,8 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
     if (currentFilter === 'today') filterLabel = ' (បញ្ជីសិស្សត្រូវបង់ថ្ងៃនេះ)';
     else if (currentFilter === 'overdue') filterLabel = ' (បញ្ជីសិស្សហួសកាលកំណត់)';
     else if (currentFilter === 'warning') filterLabel = ' (បញ្ជីសិស្សជិតដល់ថ្ងៃបង់)';
+    else if (currentFilter === 'debt') filterLabel = ' (បញ្ជីសិស្សនៅជំពាក់)';
+    else if (currentFilter === 'paid') filterLabel = ' (បញ្ជីសិស្សបានបង់រួច)';
 
     const now = new Date();
     const todayDay = String(now.getDate()).padStart(2, '0');
@@ -18103,42 +18214,215 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         return 'ចំណេះដឹងទូទៅ';
     };
 
-    let totalSumInList = 0;
-    let tableRows = data.records.map((r, index) => {
-        const s = r.student;
-        totalSumInList += (r.debt || 0);
-        const formattedDate = convertToKhmerDate(r.dateObj) || r.rawDate;
-        const khmerName = `${s.lastName || ''} ${s.firstName || ''}`.trim() || '-';
-        const chineseName = `${s.chineseLastName || ''}${s.chineseFirstName || ''}`.trim();
-        const englishName = `${s.englishLastName || ''} ${s.englishFirstName || ''}`.trim();
-        const otherNames = [chineseName, englishName].filter(Boolean).join(' / ');
-        const otherNameHtml = otherNames ? ('<div style="font-size: 0.72rem; color: #475569; margin-top: 1px;">' + otherNames + '</div>') : '';
+    // 1. Group records according to groupBy mode
+    const groupsMap = new Map();
 
-        const stageHtml = r.stageLabel ? `<div style="font-size: 0.68rem; color: #64748b; margin-top: 1px;">${r.stageLabel}</div>` : '';
-        const displayAmount = (r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0));
+    data.records.forEach(r => {
+        const s = r.student || {};
+        const teacher = (s.teacherName || s.homeroomTeacher || 'មិនទាន់កំណត់គ្រូ').trim() || 'មិនទាន់កំណត់គ្រូ';
+        const studyTime = (s.studyTime || 'មិនទាន់កំណត់ម៉ោង').trim() || 'មិនទាន់កំណត់ម៉ោង';
+
+        let groupKey = '';
+        let groupTeacher = teacher;
+        let groupTime = studyTime;
+
+        if (groupBy === 'teacher') {
+            groupKey = teacher;
+            groupTime = 'គ្រប់ម៉ោងសិក្សា';
+        } else if (groupBy === 'time') {
+            groupKey = studyTime;
+            groupTeacher = 'គ្រប់គ្រូបន្ទុកថ្នាក់';
+        } else if (groupBy === 'none') {
+            groupKey = 'all_unified';
+            groupTeacher = 'បញ្ជីរួមសិស្សទាំងអស់';
+            groupTime = 'គ្រប់ម៉ោងសិក្សា';
+        } else {
+            // default: teacher_time
+            groupKey = `${teacher} ||| ${studyTime}`;
+        }
+
+        if (!groupsMap.has(groupKey)) {
+            groupsMap.set(groupKey, {
+                groupKey,
+                teacher: groupTeacher,
+                studyTime: groupTime,
+                records: [],
+                totalFee: 0,
+                totalPaid: 0,
+                totalDebt: 0
+            });
+        }
+
+        const g = groupsMap.get(groupKey);
+        g.records.push(r);
+        g.totalFee += (r.monthlyFee || 0);
+        g.totalPaid += (r.paidAmount || 0);
+        g.totalDebt += (r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0));
+    });
+
+    // Sort groups: by teacher name (Khmer collation), then by study time
+    const groupsList = Array.from(groupsMap.values()).sort((a, b) => {
+        const compT = a.teacher.localeCompare(b.teacher, 'km');
+        if (compT !== 0) return compT;
+        return a.studyTime.localeCompare(b.studyTime);
+    });
+
+    let grandTotalFee = 0;
+    let grandTotalPaid = 0;
+    let grandTotalDebt = 0;
+    let grandTotalStudents = data.records.length;
+
+    groupsList.forEach(g => {
+        grandTotalFee += g.totalFee;
+        grandTotalPaid += g.totalPaid;
+        grandTotalDebt += g.totalDebt;
+    });
+
+    // 2. Generate HTML for each class group card
+    let groupsHtml = groupsList.map((g, gIdx) => {
+        // Sort students within class by displayId
+        g.records.sort((a, b) => {
+            const idA = String(a.student.displayId || '');
+            const idB = String(b.student.displayId || '');
+            return idA.localeCompare(idB, undefined, { numeric: true });
+        });
+
+        const rowsHtml = g.records.map((r, rIdx) => {
+            const s = r.student;
+            const formattedDate = convertToKhmerDate(r.dateObj) || r.rawDate;
+            const khmerName = `${s.lastName || ''} ${s.firstName || ''}`.trim() || '-';
+            const chineseName = `${s.chineseLastName || ''}${s.chineseFirstName || ''}`.trim();
+            const englishName = `${s.englishLastName || ''} ${s.englishFirstName || ''}`.trim();
+            const otherNames = [chineseName, englishName].filter(Boolean).join(' / ');
+            const otherNameHtml = otherNames ? (`<div style="font-size: 0.72rem; color: #475569; margin-top: 1px;">${otherNames}</div>`) : '';
+
+            const stageHtml = r.stageLabel ? `<div style="font-size: 0.68rem; color: #64748b; margin-top: 1px;">${r.stageLabel}</div>` : '';
+            const mFee = (r.monthlyFee || 0);
+            const mPaid = (r.paidAmount || 0);
+            const mDebt = (r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0));
+
+            return `
+                <tr>
+                    <td style="text-align: center; font-weight: 600;">${rIdx + 1}</td>
+                    <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${s.displayId || '-'}</td>
+                    <td style="text-align: left; padding-left: 8px;">
+                        <div style="font-weight: 700; color: #0f172a;">${khmerName}</div>
+                        ${otherNameHtml}
+                    </td>
+                    <td style="text-align: center;">${(s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី'}</td>
+                    <td style="text-align: center;">${getSectionName(s)}</td>
+                    <td style="text-align: center;">${s.studyLevel || '-'}</td>
+                    <td style="text-align: center; font-weight: 700;">
+                        ${formattedDate}
+                        ${stageHtml}
+                    </td>
+                    <td style="text-align: center; font-weight: 700; color: ${r.statusColor};">${r.statusText}</td>
+                    <td style="text-align: right; padding-right: 6px; font-weight: 700; color: #0f172a;">$${mFee.toFixed(2)}</td>
+                    <td style="text-align: right; padding-right: 6px; font-weight: 700; color: #16a34a;">$${mPaid.toFixed(2)}</td>
+                    <td style="text-align: right; padding-right: 6px; font-weight: 800; color: ${mDebt > 0 ? '#b91c1c' : '#16a34a'};">$${mDebt.toFixed(2)}</td>
+                    <td style="text-align: center; border-bottom: 1px dotted #94a3b8;"></td>
+                </tr>
+            `;
+        }).join('');
+
+        const subtotalTitle = (groupBy === 'teacher_time')
+            ? `សរុបប្រចាំថ្នាក់ (${g.teacher} | ${g.studyTime} | ${g.records.length} នាក់) ៖`
+            : (groupBy === 'teacher'
+                ? `សរុបគ្រូ ${g.teacher} (${g.records.length} នាក់) ៖`
+                : (groupBy === 'time'
+                    ? `សរុបម៉ោង ${g.studyTime} (${g.records.length} នាក់) ៖`
+                    : `សរុបទាំងអស់ (${g.records.length} នាក់) ៖`));
 
         return `
+            <div class="class-group-card">
+                <!-- Group Banner -->
+                <div class="class-group-banner">
+                    <div class="banner-left">
+                        <div class="banner-title-line">
+                            <span class="banner-role-badge">
+                                ${groupBy === 'time' ? '<i class="fi fi-rr-clock"></i> ម៉ោងសិក្សា៖' : '<i class="fi fi-rr-chalkboard-user"></i> គ្រូបន្ទុកថ្នាក់៖'}
+                            </span>
+                            <span class="banner-teacher-name">${groupBy === 'time' ? g.studyTime : g.teacher}</span>
+                            ${groupBy === 'teacher_time' ? `
+                                <span class="banner-divider">|</span>
+                                <span class="banner-shift-badge"><i class="fi fi-rr-clock"></i> ម៉ោងសិក្សា៖ <b>${g.studyTime}</b></span>
+                            ` : ''}
+                        </div>
+                        <div class="banner-sub-line">
+                            <span><i class="fi fi-rr-users"></i> ចំនួនសិស្សក្នុងថ្នាក់៖ <b>${g.records.length} នាក់</b></span>
+                        </div>
+                    </div>
+                    <div class="banner-right">
+                        <div class="stat-pill fee-pill">
+                            <span class="pill-lbl">ត្រូវបង់</span>
+                            <span class="pill-amt">$${g.totalFee.toFixed(2)}</span>
+                        </div>
+                        <div class="stat-pill paid-pill">
+                            <span class="pill-lbl">បានបង់</span>
+                            <span class="pill-amt">$${g.totalPaid.toFixed(2)}</span>
+                        </div>
+                        <div class="stat-pill debt-pill">
+                            <span class="pill-lbl">នៅជំពាក់</span>
+                            <span class="pill-amt ${g.totalDebt > 0 ? 'text-debt' : 'text-paid'}">$${g.totalDebt.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Table -->
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th width="3.5%">ល.រ</th>
+                            <th width="8%">អត្តលេខ</th>
+                            <th width="19%">គោត្តនាម-នាម</th>
+                            <th width="5.5%">ភេទ</th>
+                            <th width="9%">ផ្នែក</th>
+                            <th width="8%">កម្រិត</th>
+                            <th width="11%">ថ្ងៃត្រូវបង់</th>
+                            <th width="10%">ស្ថានភាព</th>
+                            <th width="8%">ត្រូវបង់</th>
+                            <th width="8%">បានបង់</th>
+                            <th width="8%">នៅជំពាក់</th>
+                            <th width="10%">ហត្ថលេខា/សម្គាល់</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr class="subtotal-row">
+                            <td colspan="8" style="text-align: right; font-weight: bold; font-family: 'Moul', serif; font-size: 0.72rem; padding: 7px 10px;">
+                                ${subtotalTitle}
+                            </td>
+                            <td style="text-align: right; font-weight: 800; padding-right: 6px; color: #0f172a;">$${g.totalFee.toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: 800; padding-right: 6px; color: #16a34a;">$${g.totalPaid.toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: 800; padding-right: 6px; color: ${g.totalDebt > 0 ? '#b91c1c' : '#16a34a'};">$${g.totalDebt.toFixed(2)}</td>
+                            <td style="text-align: center; font-size: 0.68rem; color: #64748b;">(ហត្ថលេខាគ្រូ)</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        `;
+    }).join('');
+
+    // 3. Summary Matrix Table rows
+    let summaryMatrixRows = groupsList.map((g, idx) => {
+        const rate = g.totalFee > 0 ? ((g.totalPaid / g.totalFee) * 100).toFixed(1) : '100.0';
+        return `
             <tr>
-                <td style="text-align: center; font-weight: 600;">${index + 1}</td>
-                <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${s.displayId || '-'}</td>
-                <td style="text-align: left; padding-left: 8px;">
-                    <div style="font-weight: 700; color: #0f172a;">${khmerName}</div>
-                    ${otherNameHtml}
-                </td>
-                <td style="text-align: center;">${(s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី'}</td>
-                <td style="text-align: center;">${getSectionName(s)}</td>
-                <td style="text-align: center;">${s.studyLevel || '-'}</td>
-                <td style="text-align: center;">${s.studyTime || '-'}</td>
-                <td style="text-align: center;">${s.teacherName || s.homeroomTeacher || '-'}</td>
-                <td style="text-align: center; font-weight: 700;">
-                    ${formattedDate}
-                    ${stageHtml}
-                </td>
-                <td style="text-align: center; font-weight: 700; color: ${r.statusColor};">${r.statusText}</td>
-                <td style="text-align: right; padding-right: 8px; font-weight: 800; color: ${r.isPaid ? '#16a34a' : '#b91c1c'};">${displayAmount.toFixed(2)}</td>
+                <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+                <td style="text-align: left; font-weight: 700; padding-left: 8px;">${g.teacher}</td>
+                <td style="text-align: center;">${g.studyTime}</td>
+                <td style="text-align: center; font-weight: 700;">${g.records.length} នាក់</td>
+                <td style="text-align: right; padding-right: 8px; font-weight: 700;">$${g.totalFee.toFixed(2)}</td>
+                <td style="text-align: right; padding-right: 8px; font-weight: 700; color: #16a34a;">$${g.totalPaid.toFixed(2)}</td>
+                <td style="text-align: right; padding-right: 8px; font-weight: 800; color: ${g.totalDebt > 0 ? '#b91c1c' : '#16a34a'};">$${g.totalDebt.toFixed(2)}</td>
+                <td style="text-align: center; font-weight: 700; color: #1e3a8a;">${rate}%</td>
             </tr>
         `;
     }).join('');
+
+    const grandRate = grandTotalFee > 0 ? ((grandTotalPaid / grandTotalFee) * 100).toFixed(1) : '100.0';
 
     const html = `<!DOCTYPE html>
 <html lang="km">
@@ -18152,7 +18436,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
     <style>
         @page {
             size: A4 landscape;
-            margin: 10mm 10mm 12mm 10mm;
+            margin: 8mm 8mm 10mm 8mm;
         }
         * {
             box-sizing: border-box;
@@ -18227,9 +18511,9 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
 
         .admin-sheet {
             max-width: 1140px;
-            margin: 25px auto 50px auto;
+            margin: 20px auto 50px auto;
             background: white;
-            padding: 30px 40px;
+            padding: 25px 35px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             border-radius: 8px;
             position: relative;
@@ -18240,17 +18524,17 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
         }
         .school-info-box {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 14px;
         }
         .school-logo {
-            width: 78px;
-            height: 78px;
+            width: 76px;
+            height: 76px;
             object-fit: contain;
             border-radius: 50%;
             border: 1.5px solid #1e3a8a;
@@ -18264,20 +18548,20 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         }
         .school-name-en {
             font-family: Arial, sans-serif;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 800;
             color: #334155;
             letter-spacing: 0.5px;
         }
         .school-branch {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: #64748b;
             margin-top: 2px;
         }
         .doc-reference {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: #0f172a;
-            margin-top: 6px;
+            margin-top: 5px;
             font-weight: 600;
         }
 
@@ -18287,14 +18571,14 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         }
         .kingdom-title {
             font-family: 'Moul', serif;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             color: #000;
             margin: 0;
             line-height: 1.4;
         }
         .kingdom-sub {
             font-family: 'Moul', serif;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             color: #000;
             margin: 4px 0 6px 0;
             line-height: 1.3;
@@ -18303,98 +18587,205 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         /* Title Area */
         .report-heading-area {
             text-align: center;
-            margin: 15px 0 20px 0;
+            margin: 10px 0 16px 0;
         }
         .report-main-title {
             font-family: 'Moul', serif;
-            font-size: 1.5rem;
+            font-size: 1.45rem;
             color: #000;
-            margin: 0 0 6px 0;
+            margin: 0 0 4px 0;
             letter-spacing: 0.5px;
         }
         .report-subject-title {
             font-family: 'Moul', serif;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             color: #1e3a8a;
-            margin: 0 0 4px 0;
-            line-height: 1.5;
+            margin: 0 0 3px 0;
+            line-height: 1.4;
         }
         .report-subtitle-en {
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             font-style: italic;
             color: #475569;
             font-weight: 600;
         }
         .report-date-created {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: #64748b;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         /* KPI Cards */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 20px;
         }
         .kpi-card {
             border: 1.5px solid #cbd5e1;
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             text-align: center;
             background: #f8fafc;
         }
         .kpi-card .kpi-label {
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: bold;
             color: #475569;
         }
         .kpi-card .kpi-val {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 800;
-            margin-top: 4px;
+            margin-top: 3px;
             color: #0f172a;
         }
         .kpi-card .kpi-sub {
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: bold;
             margin-top: 2px;
+        }
+
+        /* Class Group Card & Banner */
+        .class-group-card {
+            margin-bottom: 22px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .class-group-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: 1px solid #0f172a;
+            border-bottom: none;
+        }
+        .banner-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .banner-title-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.92rem;
+        }
+        .banner-role-badge {
+            color: #93c5fd;
+            font-weight: 700;
+        }
+        .banner-teacher-name {
+            font-family: 'Moul', serif;
+            font-size: 0.96rem;
+            color: #fbbf24;
+            letter-spacing: 0.3px;
+        }
+        .banner-divider {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .banner-shift-badge {
+            color: #e2e8f0;
+            font-size: 0.85rem;
+        }
+        .banner-sub-line {
+            font-size: 0.76rem;
+            color: #cbd5e1;
+        }
+        .banner-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-pill {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.74rem;
+        }
+        .stat-pill .pill-lbl {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .stat-pill .pill-amt {
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .text-debt {
+            color: #fca5a5 !important;
+        }
+        .text-paid {
+            color: #86efac !important;
         }
 
         /* Table */
         table.admin-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
-            margin-bottom: 30px;
+            font-size: 0.76rem;
+            margin-bottom: 0;
+            background: white;
         }
         table.admin-table th, table.admin-table td {
-            border: 1px solid #1e293b;
-            padding: 7px 5px;
+            border: 1px solid #334155;
+            padding: 6px 5px;
             vertical-align: middle;
         }
         table.admin-table th {
             background-color: #1e3a8a !important;
             color: #ffffff !important;
             font-family: 'Moul', serif;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             text-align: center;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
         }
         table.admin-table tbody tr:nth-child(even) {
             background-color: #f8fafc;
         }
-        table.admin-table tfoot tr {
+        table.admin-table tbody tr:hover {
             background-color: #f1f5f9;
+        }
+        table.admin-table tfoot tr.subtotal-row {
+            background-color: #f1f5f9;
+            border-top: 1.5px solid #0f172a;
+        }
+
+        /* Master Summary Matrix */
+        .summary-matrix-card {
+            margin-top: 25px;
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .summary-matrix-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px 6px 0 0;
+            font-family: 'Moul', serif;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         /* Signatures */
         .signatures-area {
             display: flex;
             justify-content: space-between;
-            margin-top: 35px;
+            margin-top: 30px;
             page-break-inside: avoid;
+            break-inside: avoid;
         }
         .sig-block {
             text-align: center;
@@ -18402,23 +18793,23 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         }
         .sig-title-khmer {
             font-family: 'Moul', serif;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: #000;
             line-height: 1.4;
         }
         .sig-title-role {
             font-family: 'Moul', serif;
-            font-size: 1rem;
+            font-size: 0.96rem;
             color: #1e3a8a;
             margin-top: 3px;
         }
         .sig-title-en {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: #64748b;
             font-weight: 600;
         }
         .sig-space {
-            height: 80px;
+            height: 75px;
         }
         .sig-line-dotted {
             border-top: 1px dotted #333;
@@ -18426,7 +18817,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
             margin: 0 auto 5px auto;
         }
         .sig-caption {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: #64748b;
         }
 
@@ -18447,10 +18838,22 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
                 width: 100% !important;
             }
             table.admin-table {
-                font-size: 0.76rem !important;
+                font-size: 0.74rem !important;
             }
             table.admin-table th {
                 background-color: #1e3a8a !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .class-group-banner {
+                background: #0f172a !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .summary-matrix-header {
+                background: #1e3a8a !important;
                 color: white !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -18469,6 +18872,14 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
+            .class-group-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .summary-matrix-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
             .signatures-area {
                 page-break-inside: avoid;
                 break-inside: avoid;
@@ -18480,7 +18891,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
     <div class="action-banner no-print">
         <div class="banner-title">
             <i class="fi fi-rr-document"></i> 
-            <span>របាយការណ៍សិស្សត្រូវបង់ប្រាក់ប្រចាំខែ${monthName} ឆ្នាំ ${year} (រៀបចំរួចរាល់តាមទម្រង់រដ្ឋបាល)</span>
+            <span>របាយការណ៍សិស្សត្រូវបង់ប្រាក់ប្រចាំខែ${monthName} ឆ្នាំ ${year} (បែងចែកតាមគ្រូបន្ទុកថ្នាក់ & ម៉ោងសិក្សា)</span>
         </div>
         <div class="banner-actions">
             <button class="btn-print-action" onclick="window.print()">
@@ -18525,7 +18936,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         <div class="report-heading-area">
             <h1 class="report-main-title">របាយការណ៍</h1>
             <div class="report-subject-title">ស្តីពី ស្ថានភាពសិស្សត្រូវបង់ប្រាក់ថ្លៃសិក្សាប្រចាំខែ${monthName} ឆ្នាំ ${year}${filterLabel}</div>
-            <div class="report-subtitle-en">Monthly Tuition Due & Debt Collection Report - ${monthName} ${year}</div>
+            <div class="report-subtitle-en">Monthly Tuition Due & Debt Collection Report (Categorized by Teacher & Study Time)</div>
             <div class="report-date-created">កាលបរិច្ឆេទបង្កើតរបាយការណ៍៖ ថ្ងៃទី ${todayDay} ខែ ${todayKhmerMonth} ឆ្នាំ ${todayYear}</div>
         </div>
 
@@ -18533,22 +18944,22 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         <div class="kpi-container">
             <div class="kpi-card" style="border-color: #1e3a8a; background: #f8fafc;">
                 <div class="kpi-label" style="color: #1e3a8a;">សរុបសិស្សត្រូវបង់ (Total Due)</div>
-                <div class="kpi-val" style="color: #000;">${data.records.length} នាក់</div>
-                <div class="kpi-sub" style="color: #0f766e;">ទឹកប្រាក់៖ $${totalSumInList.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <div class="kpi-val" style="color: #000;">${grandTotalStudents} នាក់</div>
+                <div class="kpi-sub" style="color: #0f766e;">ទឹកប្រាក់៖ $${grandTotalFee.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             </div>
             <div class="kpi-card" style="border-color: #dc2626; background: #fff5f5;">
-                <div class="kpi-label" style="color: #dc2626;">ហួសកាលកំណត់ (Overdue)</div>
-                <div class="kpi-val" style="color: #dc2626;">${data.kpis.overdueCount} នាក់</div>
-                <div class="kpi-sub" style="color: #dc2626;">ទឹកប្រាក់៖ $${data.kpis.overdueAmount.toFixed(2)}</div>
+                <div class="kpi-label" style="color: #dc2626;">នៅជំពាក់សរុប (Remaining Debt)</div>
+                <div class="kpi-val" style="color: #dc2626;">$${grandTotalDebt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <div class="kpi-sub" style="color: #dc2626;">អត្រាប្រមូល៖ ${grandRate}%</div>
             </div>
-            <div class="kpi-card" style="border-color: #d97706; background: #fffdf5;">
-                <div class="kpi-label" style="color: #b45309;">ត្រូវបង់ថ្ងៃនេះ (Due Today)</div>
-                <div class="kpi-val" style="color: #b45309;">${data.kpis.todayCount} នាក់</div>
-                <div class="kpi-sub" style="color: #b45309;">ទឹកប្រាក់៖ $${data.kpis.todayAmount.toFixed(2)}</div>
+            <div class="kpi-card" style="border-color: #16a34a; background: #f0fdf4;">
+                <div class="kpi-label" style="color: #15803d;">បានបង់រួច (Collected Paid)</div>
+                <div class="kpi-val" style="color: #15803d;">$${grandTotalPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <div class="kpi-sub" style="color: #15803d;">សរុបថ្នាក់រៀន៖ ${groupsList.length} ថ្នាក់</div>
             </div>
             <div class="kpi-card" style="border-color: #475569; background: #f8fafc;">
                 <div class="kpi-label" style="color: #334155;">បែងចែកតាមផ្នែក (By Program)</div>
-                <div style="font-size: 0.78rem; margin-top: 5px; color: #1e293b; text-align: left; padding-left: 8px; line-height: 1.5;">
+                <div style="font-size: 0.74rem; margin-top: 4px; color: #1e293b; text-align: left; padding-left: 8px; line-height: 1.4;">
                     <div>• ចិនពេញម៉ោង: <b>${data.kpis.chineseFullCount || 0}</b> នាក់</div>
                     <div>• ក្រៅម៉ោង: <b>${data.kpis.partTimeCount || 0}</b> នាក់</div>
                     <div>• ចំណេះទូទៅ: <b>${data.kpis.trilingualCount || 0}</b> នាក់</div>
@@ -18556,37 +18967,49 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
             </div>
         </div>
 
-        <!-- Table -->
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th width="3.5%">ល.រ</th>
-                    <th width="7.5%">អត្តលេខ</th>
-                    <th width="17%">គោត្តនាម-នាម</th>
-                    <th width="5%">ភេទ</th>
-                    <th width="9%">ផ្នែកសិក្សា</th>
-                    <th width="8%">កម្រិត</th>
-                    <th width="9%">ម៉ោងសិក្សា</th>
-                    <th width="11%">គ្រូបន្ទុកថ្នាក់</th>
-                    <th width="10%">ថ្ងៃត្រូវបង់</th>
-                    <th width="10%">ស្ថានភាព</th>
-                    <th width="10%">ទឹកប្រាក់ ($)</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${tableRows}
-            </tbody>
-            <tfoot>
-                <tr style="font-weight: bold; border-top: 2px solid #000;">
-                    <td colspan="10" style="text-align: right; font-family: 'Moul', serif; font-size: 0.8rem; padding: 10px 12px;">
-                        សរុបទឹកប្រាក់ត្រូវប្រមូលរួម (${data.records.length} នាក់) ៖
-                    </td>
-                    <td style="text-align: right; padding: 10px 8px; font-weight: 800; font-size: 1rem; color: #b91c1c;">
-                        $${totalSumInList.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
+        <!-- Class Groups -->
+        ${groupsHtml}
+
+        <!-- Master Summary Matrix -->
+        <div class="summary-matrix-card">
+            <div class="summary-matrix-header">
+                <span><i class="fi fi-rr-chart-pie me-1"></i> តារាងសង្ខេបបំណុល និងការប្រមូលប្រាក់តាមគ្រូបន្ទុកថ្នាក់ និងម៉ោងសិក្សា</span>
+                <span style="font-size: 0.78rem; font-family: 'Kantumruy Pro', sans-serif;">សរុប ${groupsList.length} ថ្នាក់ / វេនសិក្សា</span>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th width="4%">ល.រ</th>
+                        <th width="26%">គ្រូបន្ទុកថ្នាក់</th>
+                        <th width="18%">ម៉ោងសិក្សា</th>
+                        <th width="10%">ចំនួនសិស្ស</th>
+                        <th width="14%">សរុបត្រូវបង់ ($)</th>
+                        <th width="14%">បានបង់រួច ($)</th>
+                        <th width="14%">នៅជំពាក់ ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${summaryMatrixRows}
+                </tbody>
+                <tfoot>
+                    <tr style="font-weight: bold; background: #f1f5f9; border-top: 2px solid #0f172a;">
+                        <td colspan="3" style="text-align: right; font-family: 'Moul', serif; font-size: 0.75rem; padding: 8px 10px;">
+                            សរុបរួមទូទាំងសាលា (${grandTotalStudents} នាក់ | ${groupsList.length} ថ្នាក់) ៖
+                        </td>
+                        <td style="text-align: center; font-weight: 800; font-size: 0.85rem;">${grandTotalStudents} នាក់</td>
+                        <td style="text-align: right; padding-right: 8px; font-weight: 800; font-size: 0.88rem; color: #0f172a;">
+                            $${grandTotalFee.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                        </td>
+                        <td style="text-align: right; padding-right: 8px; font-weight: 800; font-size: 0.88rem; color: #16a34a;">
+                            $${grandTotalPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                        </td>
+                        <td style="text-align: right; padding-right: 8px; font-weight: 800; font-size: 0.88rem; color: #b91c1c;">
+                            $${grandTotalDebt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
 
         <!-- Administrative Signatures -->
         <div class="signatures-area">
@@ -18612,7 +19035,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
 
             <!-- Right: Preparer -->
             <div class="sig-block">
-                <div style="font-size: 0.88rem; color: #000; margin-bottom: 2px;">
+                <div style="font-size: 0.84rem; color: #000; margin-bottom: 2px;">
                     ធ្វើនៅកំពត, ថ្ងៃទី ${todayDay} ខែ ${todayKhmerMonth} ឆ្នាំ ${todayYear}
                 </div>
                 <div class="sig-title-role">អ្នករៀបចំរបាយការណ៍</div>
