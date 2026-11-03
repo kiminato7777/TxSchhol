@@ -12893,6 +12893,10 @@ margin: 0;
         const includePast = $('#dueIncludePastModalCheck').is(':checked');
         const selectedTeacher = $('#dueTeacherSelect').val() || 'all';
         const selectedTime = $('#dueTimeSelect').val() || 'all';
+        const searchKeyword = ($('#dueSearchInput').val() || '').toLowerCase().trim();
+
+        const clearModalBtn = document.getElementById('dueClearSearchBtn');
+        if (clearModalBtn) clearModalBtn.style.display = searchKeyword ? 'inline-block' : 'none';
 
         if (typeof window.getMonthlyDueStudentsData !== 'function') return;
 
@@ -12909,6 +12913,15 @@ margin: 0;
             data.records = data.records.filter(r => {
                 const tm = (r.student.studyTime || '').trim();
                 return tm === selectedTime;
+            });
+        }
+
+        // Apply keyword search filter if specified
+        if (searchKeyword) {
+            data.records = data.records.filter(r => {
+                const s = r.student || {};
+                const text = `${s.displayId || ''} ${s.lastName || ''} ${s.firstName || ''} ${s.chineseLastName || ''} ${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''} ${s.teacherName || ''} ${s.studyTime || ''}`.toLowerCase();
+                return text.includes(searchKeyword);
             });
         }
 
@@ -12940,6 +12953,12 @@ margin: 0;
         $('#dueFilterSelect').val(activeFilter);
         $('#dueIncludePastModalCheck').prop('checked', window.CURRENT_MONTHLY_INCLUDE_PAST || false);
 
+        // Pre-fill modal search if user typed something on the main pane
+        const mainSearchVal = ($('#monthlyDueSearch').val() || '').trim();
+        if ($('#dueSearchInput').length) {
+            $('#dueSearchInput').val(mainSearchVal);
+        }
+
         if (typeof window.populateMonthlyDueTeacherAndTimeFilters === 'function') {
             window.populateMonthlyDueTeacherAndTimeFilters();
         }
@@ -12953,11 +12972,11 @@ margin: 0;
         }
     };
 
-    window.generateMonthlyDuePDF = async (targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime) => {
+    window.generateMonthlyDuePDF = async (targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime, targetSearch) => {
         const month = targetMonth || parseInt($('#dueMonthSelect').val() || $('#monthlyDueMonthSelect').val() || (new Date().getMonth() + 1));
         const year = targetYear || parseInt($('#dueYearSelect').val() || $('#monthlyDueYearSelect').val() || new Date().getFullYear());
         if (typeof window.executeMonthlyDuePDF === 'function') {
-            return window.executeMonthlyDuePDF(month, year, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime);
+            return window.executeMonthlyDuePDF(month, year, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime, targetSearch);
         }
     };
 
@@ -18027,12 +18046,27 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
             </tr>
         `;
     }
+
+    // Auto-apply active search filter if text exists
+    if ($('#monthlyDueSearch').length && $('#monthlyDueSearch').val().trim()) {
+        window.filterMonthlyDueTable();
+    } else {
+        const clearBtn = document.getElementById('monthlyDueClearBtn');
+        if (clearBtn) clearBtn.style.display = 'none';
+    }
 };
 
 window.filterMonthlyDueTable = function() {
     const input = document.getElementById('monthlyDueSearch');
     if (!input) return;
     const filter = input.value.toLowerCase().trim();
+
+    // Toggle clear button
+    const clearBtn = document.getElementById('monthlyDueClearBtn');
+    if (clearBtn) {
+        clearBtn.style.display = filter ? 'inline-flex' : 'none';
+    }
+
     const rows = document.querySelectorAll('#monthlyDueBody .monthly-due-row');
     let visibleCount = 0;
     rows.forEach(r => {
@@ -18042,11 +18076,45 @@ window.filterMonthlyDueTable = function() {
         if (matches) visibleCount++;
     });
 
+    // Remove old no-match row if any
+    const existingNoMatch = document.getElementById('monthlyDueNoMatchRow');
+    if (existingNoMatch) existingNoMatch.remove();
+
+    if (visibleCount === 0 && rows.length > 0) {
+        const tbody = document.getElementById('monthlyDueBody');
+        if (tbody) {
+            const tr = document.createElement('tr');
+            tr.id = 'monthlyDueNoMatchRow';
+            tr.innerHTML = `
+                <td colspan="12" class="text-center py-5 text-muted">
+                    <div class="mb-2"><i class="fi fi-rr-search-alt text-secondary" style="font-size: 2.2rem; opacity: 0.5;"></i></div>
+                    <div class="fw-bold fs-6 text-dark">មិនមានទិន្នន័យត្រូវគ្នានឹងការស្វែងរក "${input.value}" ទេ</div>
+                    <small class="text-muted d-block mt-1">សូមសាកល្បងស្វែងរកដោយឈ្មោះ អត្តលេខ គ្រូបន្ទុកថ្នាក់ ឬម៉ោងសិក្សាផ្សេងទៀត</small>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 mt-3 fw-bold" onclick="window.clearMonthlyDueSearch()">
+                        <i class="fi fi-rr-refresh me-1"></i>សម្អាតការស្វែងរក
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
     const badge = document.getElementById('monthlyDueTableBadge');
-    if (badge) badge.innerText = `${visibleCount} នាក់`;
+    if (badge) {
+        badge.innerText = filter ? `រកឃើញ ${visibleCount} នាក់` : `${visibleCount} នាក់`;
+    }
 };
 
-window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime) {
+window.clearMonthlyDueSearch = function() {
+    const input = document.getElementById('monthlyDueSearch');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+    window.filterMonthlyDueTable();
+};
+
+window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime, targetSearch) {
     const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#dueMonthSelect').val()) || parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
     const year = targetYear ? parseInt(targetYear) : (parseInt($('#dueYearSelect').val()) || parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
@@ -18055,6 +18123,7 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
     const includePast = targetIncludePast !== undefined && targetIncludePast !== null ? Boolean(targetIncludePast) : ($('#dueIncludePastModalCheck').length ? $('#dueIncludePastModalCheck').is(':checked') : Boolean(window.CURRENT_MONTHLY_INCLUDE_PAST));
     const selectedTeacher = targetTeacher || $('#dueTeacherSelect').val() || 'all';
     const selectedTime = targetTime || $('#dueTimeSelect').val() || 'all';
+    const searchQuery = (targetSearch !== undefined && targetSearch !== null) ? String(targetSearch).trim() : ($('#dueSearchInput').val() || '').trim();
 
     let data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
 
@@ -18068,6 +18137,14 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
         data.records = data.records.filter(r => {
             const tm = (r.student.studyTime || '').trim();
             return tm === selectedTime;
+        });
+    }
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        data.records = data.records.filter(r => {
+            const s = r.student || {};
+            const text = `${s.displayId || ''} ${s.lastName || ''} ${s.firstName || ''} ${s.chineseLastName || ''} ${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''} ${s.teacherName || ''} ${s.studyTime || ''}`.toLowerCase();
+            return text.includes(q);
         });
     }
 
@@ -18152,7 +18229,7 @@ window.exportMonthlyDueExcel = function(targetMonth, targetYear, targetFilter, t
     XLSX.writeFile(wb, `Monthly_Due_Report_${month}_${year}.xlsx`);
 };
 
-window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime) {
+window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilter, targetIncludePast, targetGroupBy, targetTeacher, targetTime, targetSearch) {
     const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#dueMonthSelect').val()) || parseInt($('#monthlyDueMonthSelect').val()) || (new Date().getMonth() + 1));
     const year = targetYear ? parseInt(targetYear) : (parseInt($('#dueYearSelect').val()) || parseInt($('#monthlyDueYearSelect').val()) || new Date().getFullYear());
     if (!month || !year) return;
@@ -18171,6 +18248,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
     const groupBy = targetGroupBy || $('#dueGroupBySelect').val() || 'teacher_time';
     const selectedTeacher = targetTeacher || $('#dueTeacherSelect').val() || 'all';
     const selectedTime = targetTime || $('#dueTimeSelect').val() || 'all';
+    const searchQuery = (targetSearch !== undefined && targetSearch !== null) ? String(targetSearch).trim() : ($('#dueSearchInput').val() || '').trim();
 
     let data = window.getMonthlyDueStudentsData(month, year, currentFilter, includePast);
 
@@ -18185,6 +18263,14 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
         data.records = data.records.filter(r => {
             const tm = (r.student.studyTime || '').trim();
             return tm === selectedTime;
+        });
+    }
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        data.records = data.records.filter(r => {
+            const s = r.student || {};
+            const text = `${s.displayId || ''} ${s.lastName || ''} ${s.firstName || ''} ${s.chineseLastName || ''} ${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''} ${s.teacherName || ''} ${s.studyTime || ''}`.toLowerCase();
+            return text.includes(q);
         });
     }
 
@@ -18202,6 +18288,7 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear, targetFilt
     else if (currentFilter === 'warning') filterLabel = ' (បញ្ជីសិស្សជិតដល់ថ្ងៃបង់)';
     else if (currentFilter === 'debt') filterLabel = ' (បញ្ជីសិស្សនៅជំពាក់)';
     else if (currentFilter === 'paid') filterLabel = ' (បញ្ជីសិស្សបានបង់រួច)';
+    if (searchQuery) filterLabel += ` [ស្វែងរក៖ "${searchQuery}"]`;
 
     const now = new Date();
     const todayDay = String(now.getDate()).padStart(2, '0');

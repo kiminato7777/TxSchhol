@@ -618,9 +618,11 @@
 
                                 <!-- Month / Year Selectors -->
                                 <div class="row g-3 align-items-end mb-3">
-                                    <div class="col-md-4 col-sm-6">
-                                        <label class="form-label small fw-bold text-secondary">ជ្រើសរើសខែ (Select Month)</label>
-                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold" id="monthlyDueMonthSelect" onchange="window.renderMonthlyDueSummary()">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary mb-1">
+                                            <i class="fi fi-rr-calendar me-1 text-primary"></i> ជ្រើសរើសខែ (Select Month)
+                                        </label>
+                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold text-dark" id="monthlyDueMonthSelect" onchange="window.renderMonthlyDueSummary()">
                                             <option value="1">ខែមករា (January)</option>
                                             <option value="2">ខែកុម្ភៈ (February)</option>
                                             <option value="3">ខែមីនា (March)</option>
@@ -635,9 +637,11 @@
                                             <option value="12">ខែធ្នូ (December)</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3 col-sm-6">
-                                        <label class="form-label small fw-bold text-secondary">ជ្រើសរើសឆ្នាំ (Select Year)</label>
-                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold" id="monthlyDueYearSelect" onchange="window.renderMonthlyDueSummary()">
+                                    <div class="col-lg-2 col-md-3 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary mb-1">
+                                            <i class="fi fi-rr-calendar-lines me-1 text-primary"></i> ជ្រើសរើសឆ្នាំ (Select Year)
+                                        </label>
+                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold text-dark" id="monthlyDueYearSelect" onchange="window.renderMonthlyDueSummary()">
                                             <option value="2024">ឆ្នាំ ២០២៤</option>
                                             <option value="2025">ឆ្នាំ ២០២៥</option>
                                             <option value="2026" selected>ឆ្នាំ ២០២៦</option>
@@ -645,11 +649,32 @@
                                             <option value="2028">ឆ្នាំ ២០២៨</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-5 col-sm-12">
-                                        <label class="form-label small fw-bold text-secondary">ស្វែងរកក្នុងតារាងខែនេះ (Search Student)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light border-0"><i class="fi fi-rr-search text-muted"></i></span>
-                                            <input type="text" class="form-control border-0 bg-light py-2" id="monthlyDueSearch" placeholder="ស្វែងរកឈ្មោះ, ID, ម៉ោង, គ្រូ..." oninput="window.filterMonthlyDueTable()">
+                                    <div class="col-lg-2 col-md-5 col-sm-12">
+                                        <button class="btn btn-outline-primary rounded-3 py-2 px-3 w-100 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm hover-scale" type="button" onclick="window.renderMonthlyDueSummary()" title="ស្វែងរកនិងបង្ហាញទិន្នន័យខែដែលបានជ្រើស">
+                                            <i class="fi fi-rr-refresh"></i>
+                                            <span>ផ្ទុកទិន្នន័យខែ</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-lg-5 col-md-12 col-sm-12">
+                                        <label class="form-label small fw-bold text-secondary mb-1">
+                                            <i class="fi fi-rr-search me-1 text-primary"></i> ស្វែងរកក្នុងតារាងខែនេះ (Search Student)
+                                        </label>
+                                        <div class="input-group shadow-sm rounded-3 overflow-hidden border">
+                                            <span class="input-group-text bg-white border-0 text-primary ps-3">
+                                                <i class="fi fi-rr-search"></i>
+                                            </span>
+                                            <input type="text" class="form-control border-0 py-2 bg-white" id="monthlyDueSearch"
+                                                placeholder="ស្វែងរកឈ្មោះ, អត្តលេខ, គ្រូ, ម៉ោងសិក្សា..."
+                                                oninput="window.filterMonthlyDueTable()"
+                                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.filterMonthlyDueTable(); }">
+                                            <button class="btn btn-white border-0 text-muted px-2" type="button" id="monthlyDueClearBtn"
+                                                onclick="window.clearMonthlyDueSearch()" title="សម្អាតការស្វែងរក" style="display: none;">
+                                                <i class="fi fi-rr-cross-small fs-5"></i>
+                                            </button>
+                                            <button class="btn btn-primary px-3.5 fw-bold d-flex align-items-center gap-1.5 shadow-sm hover-scale" type="button" id="monthlyDueSearchBtn" onclick="window.filterMonthlyDueTable()">
+                                                <i class="fi fi-rr-search"></i>
+                                                <span>ស្វែងរក</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -1506,6 +1531,24 @@
                             </select>
                         </div>
 
+                        <!-- Search Student Keyword in Modal -->
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-secondary mb-1">
+                                <i class="fi fi-rr-search me-1 text-primary"></i> ស្វែងរកតាមឈ្មោះ ឬអត្តលេខសិស្ស (Search by Name / ID - Optional)
+                            </label>
+                            <div class="input-group shadow-sm rounded-3 overflow-hidden border">
+                                <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="fi fi-rr-search"></i></span>
+                                <input type="text" class="form-control border-0 bg-white py-2" id="dueSearchInput" placeholder="វាយឈ្មោះ ឬអត្តលេខសិស្សដើម្បីស្វែងរក..." oninput="window.updateModalDueSummary()" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); window.updateModalDueSummary(); }">
+                                <button class="btn btn-outline-secondary border-0 bg-white text-muted px-2" type="button" id="dueClearSearchBtn" onclick="$('#dueSearchInput').val(''); window.updateModalDueSummary();" style="display: none;">
+                                    <i class="fi fi-rr-cross-small fs-5"></i>
+                                </button>
+                                <button class="btn btn-primary px-3 fw-bold d-flex align-items-center gap-1.5" type="button" onclick="window.updateModalDueSummary()">
+                                    <i class="fi fi-rr-search"></i>
+                                    <span>ស្វែងរក</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Live Statistics Preview Card -->
                         <div class="col-12">
                             <div class="card border-0 rounded-4 shadow-sm p-3 bg-white border-start border-4 border-primary">
@@ -1539,10 +1582,13 @@
                         <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-bold shadow-sm hover-scale" onclick="bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
                             <i class="fi fi-rr-table me-1.5"></i>មើលក្នុងតារាង (View Table)
                         </button>
-                        <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'), $('#dueGroupBySelect').val(), $('#dueTeacherSelect').val(), $('#dueTimeSelect').val());">
+                        <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm hover-scale d-flex align-items-center gap-1.5" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'), $('#dueGroupBySelect').val(), $('#dueTeacherSelect').val(), $('#dueTimeSelect').val(), $('#dueSearchInput').val());">
                             <i class="fi fi-rr-file-excel"></i><span>ទាញយក Excel (.xlsx)</span>
                         </button>
-                        <button type="button" class="btn rounded-pill px-4 py-2 text-white fw-bold shadow-sm hover-scale d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);" onclick="window.executeMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'), $('#dueGroupBySelect').val(), $('#dueTeacherSelect').val(), $('#dueTimeSelect').val());">
+                        <button type="button" class="btn rounded-pill px-4 py-2 text-white fw-bold shadow-sm hover-scale d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);" onclick="window.executeMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val(), $('#dueFilterSelect').val(), $('#dueIncludePastModalCheck').is(':checked'), $('#dueGroupBySelect').val(), $('#dueTeacherSelect').val(), $('#dueTimeSelect').val(), $('#dueSearchInput').val());">
+                            <i class="fi fi-rr-file-pdf"></i><span>ទាញយក PDF (ទម្រង់រដ្ឋបាល)</span>
+                        </button>
+                    </div>
                             <i class="fi fi-rr-file-pdf"></i><span>ទាញយក PDF (ទម្រង់រដ្ឋបាល)</span>
                         </button>
                     </div>
