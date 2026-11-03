@@ -17743,7 +17743,8 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear) {
     const khmerMonthsNames = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
     const monthName = khmerMonthsNames[month - 1];
 
-    const data = window.getMonthlyDueStudentsData(month, year, 'all', window.CURRENT_MONTHLY_INCLUDE_PAST);
+    const currentFilter = window.CURRENT_MONTHLY_DUE_FILTER || 'all';
+    const data = window.getMonthlyDueStudentsData(month, year, currentFilter, window.CURRENT_MONTHLY_INCLUDE_PAST);
 
     if (data.records.length === 0) {
         if (typeof Swal !== 'undefined') {
@@ -17753,161 +17754,538 @@ window.executeMonthlyDuePDF = async function(targetMonth, targetYear) {
         }
     }
 
-    const title = `របាយការណ៍សិស្សត្រូវបង់ប្រាក់តាមខែ (Monthly Due Report)`;
-    const subtitle = `សម្រាប់ខែ៖ ${monthName} ឆ្នាំ ${year}`;
+    let filterLabel = '';
+    if (currentFilter === 'today') filterLabel = ' (បញ្ជីសិស្សត្រូវបង់ថ្ងៃនេះ)';
+    else if (currentFilter === 'overdue') filterLabel = ' (បញ្ជីសិស្សហួសកាលកំណត់)';
+    else if (currentFilter === 'warning') filterLabel = ' (បញ្ជីសិស្សជិតដល់ថ្ងៃបង់)';
+
+    const now = new Date();
+    const todayDay = String(now.getDate()).padStart(2, '0');
+    const todayKhmerMonth = khmerMonthsNames[now.getMonth()];
+    const todayYear = now.getFullYear();
 
     const getSectionName = (s) => {
         if (isStudentChineseFullTime(s)) return 'ចិនពេញម៉ោង';
         if (isStudentPartTime(s)) return 'ក្រៅម៉ោង';
-        return 'ចំណះដឹងទូទៅ';
+        return 'ចំណេះដឹងទូទៅ';
     };
 
+    let totalSumInList = 0;
     let tableRows = data.records.map((r, index) => {
         const s = r.student;
+        totalSumInList += (r.debt || 0);
         const formattedDate = convertToKhmerDate(r.dateObj) || r.rawDate;
+        const khmerName = `${s.lastName || ''} ${s.firstName || ''}`.trim() || '-';
+        const chineseName = `${s.chineseLastName || ''}${s.chineseFirstName || ''}`.trim();
+        const englishName = `${s.englishLastName || ''} ${s.englishFirstName || ''}`.trim();
+        const otherNames = [chineseName, englishName].filter(Boolean).join(' / ');
+        const otherNameHtml = otherNames ? ('<div style="font-size: 0.72rem; color: #475569; margin-top: 1px;">' + otherNames + '</div>') : '';
+
         return `
             <tr>
-                <td>${index + 1}</td>
-                <td><b>${s.displayId || '-'}</b></td>
-                <td class="text-left">
-                    <div style="font-weight: bold;">${s.lastName || ''} ${s.firstName || ''}</div>
-                    <div style="font-size: 0.75rem; color: #666;">${s.chineseLastName || ''}${s.chineseFirstName || ''} ${s.englishLastName || ''} ${s.englishFirstName || ''}</div>
+                <td style="text-align: center; font-weight: 600;">${index + 1}</td>
+                <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${s.displayId || '-'}</td>
+                <td style="text-align: left; padding-left: 8px;">
+                    <div style="font-weight: 700; color: #0f172a;">${khmerName}</div>
+                    ${otherNameHtml}
                 </td>
-                <td>${(s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី'}</td>
-                <td>${getSectionName(s)}</td>
-                <td>${s.studyLevel || ''}</td>
-                <td>${s.studyTime || ''}</td>
-                <td>${s.teacherName || s.homeroomTeacher || '-'}</td>
-                <td><b>${formattedDate}</b></td>
-                <td style="color: ${r.statusColor}; font-weight: bold;">${r.statusText}</td>
-                <td class="text-right text-danger fw-bold">$${r.debt.toFixed(2)}</td>
+                <td style="text-align: center;">${(s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី'}</td>
+                <td style="text-align: center;">${getSectionName(s)}</td>
+                <td style="text-align: center;">${s.studyLevel || '-'}</td>
+                <td style="text-align: center;">${s.studyTime || '-'}</td>
+                <td style="text-align: center;">${s.teacherName || s.homeroomTeacher || '-'}</td>
+                <td style="text-align: center; font-weight: 700;">${formattedDate}</td>
+                <td style="text-align: center; font-weight: 700; color: ${r.statusColor};">${r.statusText}</td>
+                <td style="text-align: right; padding-right: 8px; font-weight: 800; color: #b91c1c;">$${r.debt.toFixed(2)}</td>
             </tr>
         `;
     }).join('');
 
-    const html = `<html><head><title>${title} - ${monthName} ${year}</title>
-        <style>
-            @page { size: landscape; margin: 10mm; }
-            @font-face {
-                font-family: 'Khmer OS Battambang';
-                src: url(data:font/truetype;charset=utf-8;base64,${typeof khmerFontBase64 !== 'undefined' ? khmerFontBase64 : ''}) format('truetype');
+    const html = `<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>របាយការណ៍រដ្ឋបាលសិស្សត្រូវបង់ប្រាក់ - ខែ${monthName} ឆ្នាំ${year}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Moul&family=Moulpali&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm 10mm 12mm 10mm;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Kantumruy Pro', 'Khmer OS Battambang', sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .action-banner {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.25);
+        }
+        .action-banner .banner-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .action-banner .banner-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .action-banner .btn-print-action {
+            background: #ffffff;
+            color: #1e3a8a;
+            font-weight: 700;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+        .action-banner .btn-print-action:hover {
+            transform: translateY(-1px);
+            background: #f8fafc;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .action-banner .btn-close-action {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .action-banner .btn-close-action:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .admin-sheet {
+            max-width: 1140px;
+            margin: 25px auto 50px auto;
+            background: white;
+            padding: 30px 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* Administrative Layout Styles */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+        }
+        .school-info-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .school-logo {
+            width: 78px;
+            height: 78px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 1.5px solid #1e3a8a;
+            padding: 2px;
+        }
+        .school-name-kh {
+            font-family: 'Moul', serif;
+            font-size: 1.15rem;
+            color: #1e3a8a;
+            line-height: 1.4;
+        }
+        .school-name-en {
+            font-family: Arial, sans-serif;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: 0.5px;
+        }
+        .school-branch {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .doc-reference {
+            font-size: 0.82rem;
+            color: #0f172a;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        .kingdom-box {
+            text-align: center;
+            min-width: 270px;
+        }
+        .kingdom-title {
+            font-family: 'Moul', serif;
+            font-size: 1.25rem;
+            color: #000;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .kingdom-sub {
+            font-family: 'Moul', serif;
+            font-size: 1.15rem;
+            color: #000;
+            margin: 4px 0 6px 0;
+            line-height: 1.3;
+        }
+
+        /* Title Area */
+        .report-heading-area {
+            text-align: center;
+            margin: 15px 0 20px 0;
+        }
+        .report-main-title {
+            font-family: 'Moul', serif;
+            font-size: 1.5rem;
+            color: #000;
+            margin: 0 0 6px 0;
+            letter-spacing: 0.5px;
+        }
+        .report-subject-title {
+            font-family: 'Moul', serif;
+            font-size: 1.15rem;
+            color: #1e3a8a;
+            margin: 0 0 4px 0;
+            line-height: 1.5;
+        }
+        .report-subtitle-en {
+            font-size: 0.88rem;
+            font-style: italic;
+            color: #475569;
+            font-weight: 600;
+        }
+        .report-date-created {
+            font-size: 0.82rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* KPI Cards */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 14px;
+            text-align: center;
+            background: #f8fafc;
+        }
+        .kpi-card .kpi-label {
+            font-size: 0.82rem;
+            font-weight: bold;
+            color: #475569;
+        }
+        .kpi-card .kpi-val {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-top: 4px;
+            color: #0f172a;
+        }
+        .kpi-card .kpi-sub {
+            font-size: 0.82rem;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* Table */
+        table.admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-bottom: 30px;
+        }
+        table.admin-table th, table.admin-table td {
+            border: 1px solid #1e293b;
+            padding: 7px 5px;
+            vertical-align: middle;
+        }
+        table.admin-table th {
+            background-color: #1e3a8a !important;
+            color: #ffffff !important;
+            font-family: 'Moul', serif;
+            font-size: 0.72rem;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        table.admin-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        table.admin-table tfoot tr {
+            background-color: #f1f5f9;
+        }
+
+        /* Signatures */
+        .signatures-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 35px;
+            page-break-inside: avoid;
+        }
+        .sig-block {
+            text-align: center;
+            width: 31%;
+        }
+        .sig-title-khmer {
+            font-family: 'Moul', serif;
+            font-size: 0.95rem;
+            color: #000;
+            line-height: 1.4;
+        }
+        .sig-title-role {
+            font-family: 'Moul', serif;
+            font-size: 1rem;
+            color: #1e3a8a;
+            margin-top: 3px;
+        }
+        .sig-title-en {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .sig-space {
+            height: 80px;
+        }
+        .sig-line-dotted {
+            border-top: 1px dotted #333;
+            width: 75%;
+            margin: 0 auto 5px auto;
+        }
+        .sig-caption {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
             }
-            body { font-family: 'Khmer OS Battambang', sans-serif; padding: 20px; color: #333; line-height: 1.4; background: white; }
-            .header { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 3px double #8a0e5b; }
-            .logo { width: 85px; height: 85px; object-fit: cover; border-radius: 50%; border: 2px solid #8a0e5b; padding: 2px; }
-            .school-info { flex: 1; text-align: left; }
-            .school-name h1 { margin: 0; color: #8a0e5b; font-size: 1.8rem; font-weight: 900; font-family: Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
-            .school-name h2 { margin: 5px 0 0; color: #333; font-size: 1.1rem; font-weight: bold; border-bottom: 2px solid #8a0e5b; display: inline-block; padding-bottom: 3px; }
-            .report-title { text-align: right; flex: 1; }
-            .report-title h2 { margin: 0; color: #8a0e5b; font-size: 1.5rem; font-weight: bold; }
-            
-            .summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-            .summary-card { padding: 12px; border-radius: 10px; text-align: center; }
-            .summary-card h3 { margin: 0; font-size: 0.9rem; font-weight: bold; }
-            .summary-card .val { font-size: 1.25rem; font-weight: bold; margin-top: 6px; }
-            
-            table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-            th, td { border: 1px solid #cbd5e1; padding: 7px 5px; text-align: center; vertical-align: middle; }
-            th { background-color: #8a0e5b; font-weight: bold; color: white; border: 1px solid #8a0e5b; }
-            .text-left { text-align: left !important; padding-left: 8px; }
-            .text-right { text-align: right !important; padding-right: 8px; }
-            .text-danger { color: #dc3545; }
-            .fw-bold { font-weight: bold; }
-            
-            .footer { margin-top: 40px; display: flex; justify-content: space-between; padding: 0 40px; page-break-inside: avoid; }
-            .signature-box { text-align: center; width: 220px; }
-            .signature-line { margin-top: 60px; border-top: 1px solid #333; width: 100%; }
-            
-            .no-print { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff0f6; padding: 12px 25px; border-radius: 10px; border: 1px solid #ff69b4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-            .btn { padding: 10px 30px; background: #8a0e5b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
-            
-            @media print {
-                .no-print { display: none; }
-                tr { break-inside: avoid; }
-                thead { display: table-header-group; }
-                th { -webkit-print-color-adjust: exact; background-color: #8a0e5b !important; color: white !important; border: 1px solid #8a0e5b !important; }
-                .summary-card { -webkit-print-color-adjust: exact; }
+            body {
+                background: white !important;
+                padding: 0 !important;
             }
-        </style>
-    </head><body>
-        <div class="no-print">
-            <span class="fw-bold" style="color: #8a0e5b;"><i class="fi fi-rr-check-circle"></i> របាយការណ៍សិស្សត្រូវបង់ប្រាក់ប្រចាំខែ${monthName} រៀបចំរួចរាល់សម្រាប់បោះពុម្ព ឬរក្សាទុកជា PDF</span>
-            <button class="btn" onclick="window.print()">បោះពុម្ព (Print)</button>
+            .admin-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            table.admin-table {
+                font-size: 0.76rem !important;
+            }
+            table.admin-table th {
+                background-color: #1e3a8a !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .kpi-card {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            thead {
+                display: table-header-group;
+            }
+            tfoot {
+                display: table-footer-group;
+            }
+            tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .signatures-area {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="action-banner no-print">
+        <div class="banner-title">
+            <i class="fi fi-rr-document"></i> 
+            <span>របាយការណ៍សិស្សត្រូវបង់ប្រាក់ប្រចាំខែ${monthName} ឆ្នាំ ${year} (រៀបចំរួចរាល់តាមទម្រង់រដ្ឋបាល)</span>
         </div>
-        <div class="header">
-            <img src="img/1.jpg" class="logo" onerror="this.src='img/logo.jpg'">
-            <div class="school-info">
-                <div class="school-name">
-                    <h1>TIAN XIN INTERNATIONAL SCHOOL</h1>
-                    <h2>សាលាអន្តរជាតិ ធានស៊ីន</h2>
-                </div>
-            </div>
-            <div class="report-title">
-                <h2>${title}</h2>
-                <div class="fw-bold" style="color: #444; margin-top: 5px; font-size: 0.95rem;">${subtitle}</div>
-                <div style="font-size: 0.82rem; margin-top: 5px; color: #666;">
-                    កាលបរិច្ឆេទចេញរបាយការណ៍: ${new Date().toLocaleDateString('en-GB')}
-                </div>
-            </div>
+        <div class="banner-actions">
+            <button class="btn-print-action" onclick="window.print()">
+                <i class="fi fi-rr-print"></i> បោះពុម្ព (Print / PDF)
+            </button>
+            <button class="btn-close-action" onclick="window.close()">
+                <i class="fi fi-rr-cross-small"></i> បិទ
+            </button>
         </div>
-        
-        <div class="summary-cards">
-            <div class="summary-card" style="background: #fff5f8; border: 1px solid #dc3545; color: #dc3545;">
-                <h3>សរុបហួសកំណត់ (Overdue)</h3>
-                <div class="val">${data.kpis.overdueCount} នាក់<br>$${data.kpis.overdueAmount.toFixed(2)}</div>
+    </div>
+
+    <div class="admin-sheet">
+        <!-- Administrative Header -->
+        <div class="admin-header">
+            <!-- Left Header -->
+            <div>
+                <div class="school-info-box">
+                    <img src="img/1.jpg" class="school-logo" onerror="this.src='img/logo.jpg'">
+                    <div>
+                        <div class="school-name-kh">សាលាអន្តរជាតិ ធានស៊ីន</div>
+                        <div class="school-name-en">TIAN XIN INTERNATIONAL SCHOOL</div>
+                        <div class="school-branch">សាខាទី២ ភូមិក្រាំង សង្កាត់ក្រាំងអំពិល ក្រុងកំពត ខេត្តកំពត</div>
+                    </div>
+                </div>
+                <div class="doc-reference">លេខ៖ ............ / ស.ធ.ស</div>
             </div>
-            <div class="summary-card" style="background: #f0f8ff; border: 1px solid #0d6efd; color: #0d6efd;">
-                <h3>ត្រូវបង់ថ្ងៃនេះ (Today)</h3>
-                <div class="val">${data.kpis.todayCount} នាក់<br>$${data.kpis.todayAmount.toFixed(2)}</div>
-            </div>
-            <div class="summary-card" style="background: #fffdf5; border: 1px solid #ffc107; color: #d39e00;">
-                <h3>ជិតដល់ថ្ងៃ (Upcoming/Warning)</h3>
-                <div class="val">${data.kpis.warningCount} នាក់</div>
-            </div>
-            <div class="summary-card" style="background: #f8f9fa; border: 1px solid #8a0e5b; color: #8a0e5b;">
-                <h3>សរុបរួមត្រូវប្រមូល (Total Due)</h3>
-                <div class="val">${data.records.length} នាក់<br>$${data.kpis.totalDueAmount.toFixed(2)}</div>
+
+            <!-- Right Header (Kingdom & Motto) -->
+            <div class="kingdom-box">
+                <div class="kingdom-title">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                <div class="kingdom-sub">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                <div style="text-align: center; margin-top: 6px;">
+                    <svg width="90" height="12" viewBox="0 0 100 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 6 C 25 1, 35 11, 50 6 C 65 1, 75 11, 95 6" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="50" cy="6" r="2.5" fill="#000"/>
+                    </svg>
+                </div>
             </div>
         </div>
 
-        <table>
+        <!-- Title Block -->
+        <div class="report-heading-area">
+            <h1 class="report-main-title">របាយការណ៍</h1>
+            <div class="report-subject-title">ស្តីពី ស្ថានភាពសិស្សត្រូវបង់ប្រាក់ថ្លៃសិក្សាប្រចាំខែ${monthName} ឆ្នាំ ${year}${filterLabel}</div>
+            <div class="report-subtitle-en">Monthly Tuition Due & Debt Collection Report - ${monthName} ${year}</div>
+            <div class="report-date-created">កាលបរិច្ឆេទបង្កើតរបាយការណ៍៖ ថ្ងៃទី ${todayDay} ខែ ${todayKhmerMonth} ឆ្នាំ ${todayYear}</div>
+        </div>
+
+        <!-- Administrative KPI Summary Cards -->
+        <div class="kpi-container">
+            <div class="kpi-card" style="border-color: #1e3a8a; background: #f8fafc;">
+                <div class="kpi-label" style="color: #1e3a8a;">សរុបសិស្សត្រូវបង់ (Total Due)</div>
+                <div class="kpi-val" style="color: #000;">${data.records.length} នាក់</div>
+                <div class="kpi-sub" style="color: #0f766e;">ទឹកប្រាក់៖ $${totalSumInList.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="kpi-card" style="border-color: #dc2626; background: #fff5f5;">
+                <div class="kpi-label" style="color: #dc2626;">ហួសកាលកំណត់ (Overdue)</div>
+                <div class="kpi-val" style="color: #dc2626;">${data.kpis.overdueCount} នាក់</div>
+                <div class="kpi-sub" style="color: #dc2626;">ទឹកប្រាក់៖ $${data.kpis.overdueAmount.toFixed(2)}</div>
+            </div>
+            <div class="kpi-card" style="border-color: #d97706; background: #fffdf5;">
+                <div class="kpi-label" style="color: #b45309;">ត្រូវបង់ថ្ងៃនេះ (Due Today)</div>
+                <div class="kpi-val" style="color: #b45309;">${data.kpis.todayCount} នាក់</div>
+                <div class="kpi-sub" style="color: #b45309;">ទឹកប្រាក់៖ $${data.kpis.todayAmount.toFixed(2)}</div>
+            </div>
+            <div class="kpi-card" style="border-color: #475569; background: #f8fafc;">
+                <div class="kpi-label" style="color: #334155;">បែងចែកតាមផ្នែក (By Program)</div>
+                <div style="font-size: 0.78rem; margin-top: 5px; color: #1e293b; text-align: left; padding-left: 8px; line-height: 1.5;">
+                    <div>• ចិនពេញម៉ោង: <b>${data.kpis.chineseFullCount || 0}</b> នាក់</div>
+                    <div>• ក្រៅម៉ោង: <b>${data.kpis.partTimeCount || 0}</b> នាក់</div>
+                    <div>• ចំណេះទូទៅ: <b>${data.kpis.trilingualCount || 0}</b> នាក់</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <table class="admin-table">
             <thead>
                 <tr>
-                    <th width="4%">ល.រ</th>
-                    <th width="7%">អត្តលេខ</th>
-                    <th>ឈ្មោះសិស្ស</th>
-                    <th width="6%">ភេទ</th>
-                    <th width="9%">ផ្នែក</th>
-                    <th width="9%">កម្រិត</th>
-                    <th width="11%">ម៉ោងសិក្សា</th>
-                    <th width="11%">គ្រូបន្ទុក</th>
-                    <th width="11%">ថ្ងៃត្រូវបង់</th>
-                    <th width="12%">ស្ថានភាព</th>
-                    <th width="10%">ទឹកប្រាក់</th>
+                    <th width="3.5%">ល.រ</th>
+                    <th width="7.5%">អត្តលេខ</th>
+                    <th width="17%">គោត្តនាម-នាម</th>
+                    <th width="5%">ភេទ</th>
+                    <th width="9%">ផ្នែកសិក្សា</th>
+                    <th width="8%">កម្រិត</th>
+                    <th width="9%">ម៉ោងសិក្សា</th>
+                    <th width="11%">គ្រូបន្ទុកថ្នាក់</th>
+                    <th width="10%">ថ្ងៃត្រូវបង់</th>
+                    <th width="10%">ស្ថានភាព</th>
+                    <th width="10%">ទឹកប្រាក់ ($)</th>
                 </tr>
             </thead>
             <tbody>
                 ${tableRows}
             </tbody>
             <tfoot>
-                <tr style="background-color: #f8f9fa; font-weight: bold;">
-                    <td colspan="10" class="text-right" style="padding: 10px;">សរុបទឹកប្រាក់ត្រូវប្រមូល (Total Amount) ៖</td>
-                    <td class="text-right text-danger" style="font-size: 1rem;">$${data.kpis.totalDueAmount.toFixed(2)}</td>
+                <tr style="font-weight: bold; border-top: 2px solid #000;">
+                    <td colspan="10" style="text-align: right; font-family: 'Moul', serif; font-size: 0.8rem; padding: 10px 12px;">
+                        សរុបទឹកប្រាក់ត្រូវប្រមូលរួម (${data.records.length} នាក់) ៖
+                    </td>
+                    <td style="text-align: right; padding: 10px 8px; font-weight: 800; font-size: 1rem; color: #b91c1c;">
+                        $${totalSumInList.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    </td>
                 </tr>
             </tfoot>
         </table>
-        
-        <div class="footer">
-            <div class="signature-box">
-                <div class="fw-bold">អ្នករៀបចំ (Prepared By)</div>
-                <div class="signature-line"></div>
+
+        <!-- Administrative Signatures -->
+        <div class="signatures-area">
+            <!-- Left: Principal -->
+            <div class="sig-block">
+                <div class="sig-title-khmer">បានឃើញ និងឯកភាព</div>
+                <div class="sig-title-role">នាយកសាលា</div>
+                <div class="sig-title-en">(Principal)</div>
+                <div class="sig-space"></div>
+                <div class="sig-line-dotted"></div>
+                <div class="sig-caption">(ហត្ថលេខា និងត្រា)</div>
             </div>
-            <div class="signature-box">
-                <div class="fw-bold">នាយកសាលា (Principal)</div>
-                <div class="signature-line"></div>
+
+            <!-- Center: Admin / Accounting -->
+            <div class="sig-block">
+                <div class="sig-title-khmer">បានពិនិត្យត្រឹមត្រូវ</div>
+                <div class="sig-title-role">ប្រធានការិយាល័យរដ្ឋបាល/គណនេយ្យ</div>
+                <div class="sig-title-en">(Head of Admin & Accounting)</div>
+                <div class="sig-space"></div>
+                <div class="sig-line-dotted"></div>
+                <div class="sig-caption">(ហត្ថលេខា)</div>
+            </div>
+
+            <!-- Right: Preparer -->
+            <div class="sig-block">
+                <div style="font-size: 0.88rem; color: #000; margin-bottom: 2px;">
+                    ធ្វើនៅកំពត, ថ្ងៃទី ${todayDay} ខែ ${todayKhmerMonth} ឆ្នាំ ${todayYear}
+                </div>
+                <div class="sig-title-role">អ្នករៀបចំរបាយការណ៍</div>
+                <div class="sig-title-en">(Prepared By)</div>
+                <div class="sig-space"></div>
+                <div class="sig-line-dotted"></div>
+                <div class="sig-caption">(ហត្ថលេខា និងឈ្មោះ)</div>
             </div>
         </div>
-    </body></html>`;
+    </div>
+</body>
+</html>`;
 
     let win = window.open('', '_blank');
     if (!win) {
