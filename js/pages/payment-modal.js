@@ -1178,6 +1178,7 @@ function saveAdditionalPayment(key) {
 
     const updateData = {
         installments: installments,
+        remark: '', // Reset & clear previous debt remark when student makes a payment
         updatedAt: new Date().toISOString()
     };
     if (nextDueDate) updateData.nextPaymentDate = nextDueDate;
@@ -1190,7 +1191,12 @@ function saveAdditionalPayment(key) {
     studentsRef.child(key).update(updateData)
         .then(async () => {
             if (allStudentsData[key]) {
+                allStudentsData[key].remark = '';
                 Object.assign(allStudentsData[key], updateData);
+                if (Array.isArray(window.rawStudentsArray)) {
+                    const st = window.rawStudentsArray.find(item => item && item.key === key);
+                    if (st) st.remark = '';
+                }
                 // Unified recalculation (100% dynamic)
                 if (typeof syncStudentFinancials === 'function') await syncStudentFinancials(key);
                 

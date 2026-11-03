@@ -13025,16 +13025,6 @@ margin: 0;
         if (modalEl) {
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
-
-            setTimeout(() => {
-                if (defaultAction === 'pdf') {
-                    const pdfBtn = document.getElementById('modalExportPdfBtn');
-                    if (pdfBtn) pdfBtn.focus();
-                } else if (defaultAction === 'excel') {
-                    const excelBtn = document.getElementById('modalExportExcelBtn');
-                    if (excelBtn) excelBtn.focus();
-                }
-            }, 300);
         }
     };
 
@@ -14354,7 +14344,8 @@ window.showQuickFinancialSummary = () => {
             const paid = calculateTotalPaid(s);
             const outstanding = calculateRemainingAmount(s);
             const isStudentPaid = status.status === 'paid' || outstanding <= 0.01;
-            const displayRemark = isStudentPaid ? '-' : (s.remark || '-');
+            const cleanRemark = typeof window.getCleanStudentDebtRemark === 'function' ? window.getCleanStudentDebtRemark(s) : (s.remark || '-');
+            const displayRemark = (isStudentPaid || cleanRemark === '-') ? '-' : cleanRemark;
 
             html += `
                 <tr class="text-center">
@@ -14634,6 +14625,70 @@ function updateDebtBadge(students) {
 
 window.CURRENT_UNIFIED_FILTER = 'all';
 
+// Helper: Clean & Validate Student Debt Remark
+window.getCleanStudentDebtRemark = function(s) {
+    if (!s) return '-';
+
+    // 1. Explicit paid or finished enrollment status
+    const pStatus = (s.paymentStatus || '').toLowerCase().trim();
+    const enStatus = (s.enrollmentStatus || '').toLowerCase().trim();
+    if (pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidfull' || pStatus === 'paidoff' || pStatus === 'បង់រួច' || pStatus === 'បង់រួចរាល់' || enStatus === 'paidoff' || enStatus === 'graduated') {
+        return '-';
+    }
+
+    // 2. Total remaining balance <= 0.01
+    const debt = typeof calculateRemainingAmount === 'function' ? calculateRemainingAmount(s) : 0;
+    if (debt <= 0.01) {
+        return '-';
+    }
+
+    // 3. Status evaluated by getPaymentStatus is 'paid'
+    if (typeof getPaymentStatus === 'function') {
+        const stObj = getPaymentStatus(s);
+        if (stObj && stObj.status === 'paid') return '-';
+    }
+
+    // 4. Current month context check (Monthly Due Context)
+    if (typeof window.getStudentMonthlyDueContext === 'function') {
+        const d = new Date();
+        const ctx = window.getStudentMonthlyDueContext(s, d.getMonth() + 1, d.getFullYear());
+        if (ctx && ctx.isPaid && (ctx.remainingDebt === undefined || ctx.remainingDebt <= 0.01)) {
+            return '-';
+        }
+    }
+
+    // 5. Installments check: if latest installment is fully paid and next payment date is in the future
+    if (s.installments) {
+        const instList = Array.isArray(s.installments) ? s.installments : Object.values(s.installments);
+        if (instList.length > 0) {
+            const lastInst = instList[instList.length - 1];
+            const isLastPaid = lastInst && (lastInst.paid === true || (parseFloat(lastInst.paidAmount) || 0) >= (parseFloat(lastInst.amount) || 0));
+            if (isLastPaid) {
+                const nextDateRaw = s.nextPaymentDate || s.paymentDueDate;
+                if (nextDateRaw && typeof getDateObject === 'function') {
+                    const nextObj = getDateObject(nextDateRaw);
+                    if (nextObj && !isNaN(nextObj.getTime())) {
+                        const today = new Date();
+                        today.setHours(12, 0, 0, 0);
+                        nextObj.setHours(12, 0, 0, 0);
+                        if (nextObj > today) {
+                            return '-';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 6. Filter out legacy automated system action logs dumped into s.remark
+    const r = (s.remark || '').trim();
+    if (!r || r === '-' || r.startsWith('[ប្តូរម៉ោង') || r.startsWith('[ផ្អាកការសិក្សា') || r.startsWith('[ឈប់រៀន')) {
+        return '-';
+    }
+
+    return r;
+};
+
 function renderUnifiedDebtList(students) {
     const tbody = document.getElementById('unifiedDebtBody');
     if (!tbody) return;
@@ -14691,17 +14746,24 @@ function renderUnifiedDebtList(students) {
         const statusObj = getPaymentStatus(s);
         const debt = calculateRemainingAmount(s);
 
-        const isStudentPaid = statusObj.status === 'paid' || debt <= 0.01 || (s.paymentStatus || '').toLowerCase() === 'paid' || (s.paymentStatus || '').toLowerCase() === 'paid full' || (s.enrollmentStatus || '').toLowerCase() === 'paidoff';
+        const cleanRemark = window.getCleanStudentDebtRemark(s);
+        const isStudentPaid = statusObj.status === 'paid' 
+            || debt <= 0.01 
+            || (s.paymentStatus || '').toLowerCase() === 'paid' 
+            || (s.paymentStatus || '').toLowerCase() === 'paid full' 
+            || (s.enrollmentStatus || '').toLowerCase() === 'paidoff'
+            || cleanRemark === '-';
         
-        // ប្រសិនជាសិស្សបានបង់ប្រាក់រួច ក្នុងសម្គាល់ ត្រូវ clear ចេញ
-        if (isStudentPaid && s.remark) {
+        // ប្រសិនជាសិស្សបានបង់ប្រាក់រួច ឬគ្មានបំណុល ក្នុងសម្គាល់ ត្រូវ clear ចេញពី Firebase និង memory
+        if ((isStudentPaid || cleanRemark === '-') && s.remark) {
             s.remark = '';
+            if (allStudentsData && allStudentsData[s.key]) allStudentsData[s.key].remark = '';
             if (s.key && typeof studentsRef !== 'undefined') {
                 studentsRef.child(s.key).update({ remark: '' }).catch(() => {});
             }
         }
         
-        const displayRemark = isStudentPaid ? '-' : (s.remark || '-');
+        const displayRemark = (isStudentPaid || cleanRemark === '-') ? '-' : cleanRemark;
 
         // Define premium labels
         const badgeClasses = {
@@ -14902,12 +14964,24 @@ window.updateDebtRemark = (key, currentRemark) => {
         }
     }).then((result) => {
         if (result.isConfirmed) {
+            const newRemark = (result.value || '').trim();
             showLoading(true);
             studentsRef.child(key).update({
-                remark: result.value || '',
+                remark: newRemark,
                 lastUpdated: new Date().toISOString()
             }).then(() => {
                 showLoading(false);
+                if (allStudentsData && allStudentsData[key]) allStudentsData[key].remark = newRemark;
+                if (Array.isArray(window.rawStudentsArray)) {
+                    const st = window.rawStudentsArray.find(item => item && item.key === key);
+                    if (st) st.remark = newRemark;
+                }
+                const activeOnly = (window.rawStudentsArray || []).filter(s => {
+                    const st = (s.enrollmentStatus || '').toLowerCase().trim();
+                    return st !== 'dropout' && st !== 'graduated' && st !== 'suspended' && st !== 'paidoff';
+                });
+                renderUnifiedDebtList(activeOnly);
+                if (typeof renderDebtSummary === 'function') renderDebtSummary();
                 Swal.fire({
                     icon: 'success',
                     title: 'រក្សាទុកជោគជ័យ',
@@ -14934,19 +15008,30 @@ window.updateDebtRemark = (key, currentRemark) => {
             }).then((confirmDelete) => {
                 if (confirmDelete.isConfirmed) {
                     showLoading(true);
-                    studentsRef.child(key).child('remark').remove().then(() => {
-showLoading(false);
-Swal.fire({
-    icon: 'success',
-    title: 'បានលុបចេញ',
-    text: 'សម្គាល់ត្រូវបានលុបដោយជោគជ័យ!',
-    timer: 1500,
-    showConfirmButton: false,
-    customClass: { popup: 'rounded-4' }
-});
+                    studentsRef.child(key).update({ remark: '' }).then(() => {
+                        showLoading(false);
+                        if (allStudentsData && allStudentsData[key]) allStudentsData[key].remark = '';
+                        if (Array.isArray(window.rawStudentsArray)) {
+                            const st = window.rawStudentsArray.find(item => item && item.key === key);
+                            if (st) st.remark = '';
+                        }
+                        const activeOnly = (window.rawStudentsArray || []).filter(s => {
+                            const st = (s.enrollmentStatus || '').toLowerCase().trim();
+                            return st !== 'dropout' && st !== 'graduated' && st !== 'suspended' && st !== 'paidoff';
+                        });
+                        renderUnifiedDebtList(activeOnly);
+                        if (typeof renderDebtSummary === 'function') renderDebtSummary();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'បានលុបចេញ',
+                            text: 'សម្គាល់ត្រូវបានលុបដោយជោគជ័យ!',
+                            timer: 1500,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-4' }
+                        });
                     }).catch(err => {
-showLoading(false);
-Swal.fire('Error', err.message, 'error');
+                        showLoading(false);
+                        Swal.fire('Error', err.message, 'error');
                     });
                 }
             });
@@ -15436,8 +15521,9 @@ window.exportCurrentDetailedListPDF = () => {
     doc.text(`កាលបរិច្ឆេទ៖ ${new Date().toLocaleString('en-GB')}`, 15, 30);
 
     const body = filtered.map((s, idx) => {
-        const isPaid = getPaymentStatus(s).status === 'paid' || calculateRemainingAmount(s) <= 0.01;
-        const displayRemark = isPaid ? '-' : (s.remark || '-');
+        const displayRemark = typeof window.getCleanStudentDebtRemark === 'function' 
+            ? window.getCleanStudentDebtRemark(s) 
+            : ((getPaymentStatus(s).status === 'paid' || calculateRemainingAmount(s) <= 0.01) ? '-' : (s.remark || '-'));
         return [
             idx + 1,
             s.displayId || '-',
@@ -15552,7 +15638,7 @@ window.exportDebtReportPDF = () => {
             s.nextPaymentDate || '-',
             `$${calculateRemainingAmount(s).toFixed(2)}`,
             statusObj.text,
-            s.remark || '-'
+            typeof window.getCleanStudentDebtRemark === 'function' ? window.getCleanStudentDebtRemark(s) : (s.remark || '-')
         ];
     });
 
@@ -15695,7 +15781,7 @@ window.exportCategorizedDebtReportPDF = () => {
                 (s.gender === 'Male' || s.gender === 'ប្រុស') ? 'ប្រុស' : 'ស្រី',
                 `$${calculateRemainingAmount(s).toFixed(2)}`,
                 s.nextPaymentDate || '-',
-                s.remark || '-'
+                typeof window.getCleanStudentDebtRemark === 'function' ? window.getCleanStudentDebtRemark(s) : (s.remark || '-')
             ]);
 
             const catTotalDue = filtered.reduce((sum, s) => sum + calculateRemainingAmount(s), 0);
