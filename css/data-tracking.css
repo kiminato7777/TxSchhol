@@ -2394,3 +2394,126 @@
     box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25) !important;
 }
 
+/* ==========================================================================
+   MODERN MONTHLY DUE EXPORT MODAL STYLING
+   ========================================================================== */
+#monthlyDueModal .modal-dialog {
+    max-width: 820px;
+    margin: 1.75rem auto;
+}
+
+#monthlyDueModal .modal-content {
+    border-radius: 24px !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35) !important;
+    overflow: hidden !important;
+}
+
+#monthlyDueModal .modal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2563eb 100%) !important;
+    position: relative;
+    padding: 1.15rem 1.5rem !important;
+    border: none !important;
+}
+
+#monthlyDueModal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+#monthlyDueModal .modal-body {
+    background-color: #f8fafc !important;
+    padding: 1.25rem 1.5rem !important;
+}
+
+.due-card-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.25s ease;
+}
+
+.due-card-section:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.due-field-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.due-input-control {
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 9px 14px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    background-color: #f8fafc !important;
+    transition: all 0.2s ease !important;
+}
+
+.due-input-control:focus {
+    background-color: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+    outline: none !important;
+}
+
+.due-preview-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    border: 1.5px solid #c7d2fe;
+    border-radius: 18px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05);
+}
+
+.due-kpi-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+}
+
+.due-kpi-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.due-btn-glow-pdf {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35) !important;
+    transition: all 0.2s ease !important;
+}
+
+.due-btn-glow-pdf:hover {
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 6px 18px rgba(30, 58, 138, 0.45) !important;
+}
+
+.due-btn-glow-excel {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+    transition: all 0.2s ease !important;
+}
+
+.due-btn-glow-excel:hover {
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45) !important;
+}
+
+

@@ -12925,16 +12925,72 @@ margin: 0;
             });
         }
 
-        const totalAmount = data.records.reduce((sum, r) => sum + (r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0)), 0);
+        let totalExpectedAmount = 0;
+        let totalPaidAmount = 0;
+        let totalDebtAmount = 0;
+        let todayCount = 0;
+        let overdueCount = 0;
+        let warningCount = 0;
+        let paidCount = 0;
+        let debtCount = 0;
+
+        data.records.forEach(r => {
+            const fee = r.monthlyFee !== undefined ? r.monthlyFee : ((r.paidAmount || 0) + (r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0)));
+            const paid = r.paidAmount !== undefined ? r.paidAmount : (r.isPaid ? fee : 0);
+            const debt = r.remainingDebt !== undefined ? r.remainingDebt : (r.debt || 0);
+
+            totalExpectedAmount += fee;
+            totalPaidAmount += paid;
+            totalDebtAmount += debt;
+
+            if (r.status === 'today') todayCount++;
+            else if (r.status === 'overdue' || r.status === 'past_overdue') overdueCount++;
+            else if (r.status === 'warning') warningCount++;
+
+            if (debt > 0.01) debtCount++;
+            if (r.status === 'paid' || r.isPaid) paidCount++;
+        });
+
+        const collectionRate = totalExpectedAmount > 0 
+            ? Math.min(100, Math.round((totalPaidAmount / totalExpectedAmount) * 100))
+            : (data.records.length > 0 && debtCount === 0 ? 100 : 0);
 
         const countEl = document.getElementById('modalDueCountBadge');
         const amountEl = document.getElementById('modalDueAmountBadge');
+        const paidEl = document.getElementById('modalDuePaidBadge');
+        const debtEl = document.getElementById('modalDueDebtBadge');
+        const paidPercentEl = document.getElementById('modalDuePaidPercent');
+        const debtCountEl = document.getElementById('modalDueDebtCount');
+        const progressBarEl = document.getElementById('modalDueProgressBar');
         const detailEl = document.getElementById('modalDueDetailText');
+        const indicatorEl = document.getElementById('modalDueFilterIndicator');
 
         if (countEl) countEl.innerText = `${data.records.length} នាក់`;
-        if (amountEl) amountEl.innerText = `$${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (amountEl) amountEl.innerText = `$${totalExpectedAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (paidEl) paidEl.innerText = `$${totalPaidAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (debtEl) debtEl.innerText = `$${totalDebtAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (paidPercentEl) paidPercentEl.innerText = `${collectionRate}%`;
+        if (debtCountEl) debtCountEl.innerText = `${debtCount} នាក់`;
+
+        if (progressBarEl) {
+            progressBarEl.style.width = `${collectionRate}%`;
+            progressBarEl.className = collectionRate >= 100 ? 'progress-bar bg-success rounded-pill' : (collectionRate >= 50 ? 'progress-bar bg-primary rounded-pill' : 'progress-bar bg-warning rounded-pill');
+        }
+
         if (detailEl) {
-            detailEl.innerText = `ត្រូវបង់ថ្ងៃនេះ: ${data.kpis.todayCount} នាក់ | ហួសកំណត់: ${data.kpis.overdueCount} នាក់ | ជិតដល់ថ្ងៃ: ${data.kpis.warningCount} នាក់ | បង់រួច: ${data.subCounts.paid} នាក់`;
+            detailEl.innerHTML = `<span class="badge bg-primary-subtle text-primary border rounded-pill px-2 py-0.5 me-1">ត្រូវបង់ថ្ងៃនេះ: ${todayCount}</span> <span class="badge bg-danger-subtle text-danger border rounded-pill px-2 py-0.5 me-1">ហួសកំណត់: ${overdueCount}</span> <span class="badge bg-warning-subtle text-dark border rounded-pill px-2 py-0.5 me-1">ជិតដល់ថ្ងៃ: ${warningCount}</span> <span class="badge bg-success-subtle text-success border rounded-pill px-2 py-0.5">បង់រួច: ${paidCount}</span>`;
+        }
+
+        if (indicatorEl) {
+            const khmerMonthNames = ['', 'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+            const mName = khmerMonthNames[month] || `ខែ ${month}`;
+            let filterLabel = 'សិស្សទាំងអស់';
+            if (filter === 'today') filterLabel = 'ត្រូវបង់ថ្ងៃនេះ';
+            else if (filter === 'overdue') filterLabel = 'ហួសកំណត់';
+            else if (filter === 'warning') filterLabel = 'ជិតដល់ថ្ងៃ';
+            else if (filter === 'debt') filterLabel = 'នៅជំពាក់';
+            else if (filter === 'paid') filterLabel = 'បង់រួច';
+            indicatorEl.innerText = `ខែ${mName} ឆ្នាំ ${year} | ${filterLabel} (${data.records.length} នាក់)`;
         }
     };
 
@@ -12969,6 +13025,16 @@ margin: 0;
         if (modalEl) {
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
+
+            setTimeout(() => {
+                if (defaultAction === 'pdf') {
+                    const pdfBtn = document.getElementById('modalExportPdfBtn');
+                    if (pdfBtn) pdfBtn.focus();
+                } else if (defaultAction === 'excel') {
+                    const excelBtn = document.getElementById('modalExportExcelBtn');
+                    if (excelBtn) excelBtn.focus();
+                }
+            }, 300);
         }
     };
 
