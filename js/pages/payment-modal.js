@@ -1178,9 +1178,22 @@ function saveAdditionalPayment(key) {
 
     const updateData = {
         installments: installments,
-        remark: '', // Reset & clear previous debt remark when student makes a payment
         updatedAt: new Date().toISOString()
     };
+    if (note && note.trim()) {
+        updateData.remark = note.trim();
+        updateData.note = note.trim();
+    } else if (newRemaining <= 0.01 && (payStatus === 'Paid' || payStatus === 'paid')) {
+        updateData.remark = '';
+        updateData.note = '';
+    }
+    if (postponedReason && postponedReason.trim()) {
+        updateData.postponedReason = postponedReason.trim();
+        if (!updateData.remark) {
+            updateData.remark = postponedReason.trim();
+            updateData.note = postponedReason.trim();
+        }
+    }
     if (nextDueDate) updateData.nextPaymentDate = nextDueDate;
     if (postponedDate) updateData.nextPaymentDate = postponedDate;
     if (currentTotalMonths) updateData.paymentMonths = currentTotalMonths;
@@ -1191,11 +1204,17 @@ function saveAdditionalPayment(key) {
     studentsRef.child(key).update(updateData)
         .then(async () => {
             if (allStudentsData[key]) {
-                allStudentsData[key].remark = '';
+                if (updateData.remark !== undefined) allStudentsData[key].remark = updateData.remark;
+                if (updateData.note !== undefined) allStudentsData[key].note = updateData.note;
+                if (updateData.postponedReason !== undefined) allStudentsData[key].postponedReason = updateData.postponedReason;
                 Object.assign(allStudentsData[key], updateData);
                 if (Array.isArray(window.rawStudentsArray)) {
                     const st = window.rawStudentsArray.find(item => item && item.key === key);
-                    if (st) st.remark = '';
+                    if (st) {
+                        if (updateData.remark !== undefined) st.remark = updateData.remark;
+                        if (updateData.note !== undefined) st.note = updateData.note;
+                        if (updateData.postponedReason !== undefined) st.postponedReason = updateData.postponedReason;
+                    }
                 }
                 // Unified recalculation (100% dynamic)
                 if (typeof syncStudentFinancials === 'function') await syncStudentFinancials(key);
