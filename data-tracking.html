@@ -616,55 +616,51 @@
                                     </div>
                                 </div>
 
-                                <!-- Month / Year Selectors -->
-                                <div class="row g-3 align-items-end mb-3">
-                                    <div class="col-lg-3 col-md-4 col-sm-6">
-                                        <label class="form-label small fw-bold text-secondary mb-1">
-                                            <i class="fi fi-rr-calendar me-1 text-primary"></i> ជ្រើសរើសខែ (Select Month)
-                                        </label>
-                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold text-dark" id="monthlyDueMonthSelect" onchange="window.renderMonthlyDueSummary()">
-                                            <option value="1">ខែមករា (January)</option>
-                                            <option value="2">ខែកុម្ភៈ (February)</option>
-                                            <option value="3">ខែមីនា (March)</option>
-                                            <option value="4">ខែមេសា (April)</option>
-                                            <option value="5">ខែឧសភា (May)</option>
-                                            <option value="6">ខែមិថុនា (June)</option>
-                                            <option value="7">ខែកក្កដា (July)</option>
-                                            <option value="8">ខែសីហា (August)</option>
-                                            <option value="9">ខែកញ្ញា (September)</option>
-                                            <option value="10">ខែតុលា (October)</option>
-                                            <option value="11" selected>ខែវិច្ឆិកា (November)</option>
-                                            <option value="12">ខែធ្នូ (December)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-lg-2 col-md-3 col-sm-6">
-                                        <label class="form-label small fw-bold text-secondary mb-1">
-                                            <i class="fi fi-rr-calendar-lines me-1 text-primary"></i> ជ្រើសរើសឆ្នាំ (Select Year)
-                                        </label>
-                                        <select class="form-select border-0 bg-light rounded-3 py-2 fw-bold text-dark" id="monthlyDueYearSelect" onchange="window.renderMonthlyDueSummary()">
-                                            <option value="2024">ឆ្នាំ ២០២៤</option>
-                                            <option value="2025">ឆ្នាំ ២០២៥</option>
-                                            <option value="2026" selected>ឆ្នាំ ២០២៦</option>
-                                            <option value="2027">ឆ្នាំ ២០២៧</option>
-                                            <option value="2028">ឆ្នាំ ២០២៨</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-lg-2 col-md-5 col-sm-12">
-                                        <button class="btn btn-outline-primary rounded-3 py-2 px-3 w-100 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm hover-scale" type="button" onclick="window.renderMonthlyDueSummary()" title="ស្វែងរកនិងបង្ហាញទិន្នន័យខែដែលបានជ្រើស">
-                                            <i class="fi fi-rr-refresh"></i>
-                                            <span>ផ្ទុកទិន្នន័យខែ</span>
+                                <!-- Modern Unified Control Toolbar -->
+                                <div class="monthly-due-control-bar p-3 mb-3 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3 shadow-sm">
+                                    <!-- Left: Month & Year Selector + Quick Refresh -->
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <div class="input-group shadow-sm rounded-pill overflow-hidden border bg-white flex-nowrap" style="min-width: 300px;">
+                                            <span class="input-group-text bg-white border-0 text-primary ps-3 pe-2">
+                                                <i class="fi fi-rr-calendar fs-6"></i>
+                                            </span>
+                                            <select class="form-select border-0 bg-white py-2 fw-bold text-dark ps-1 pe-2 shadow-none" id="monthlyDueMonthSelect" onchange="window.renderMonthlyDueSummary()">
+                                                <option value="1">ខែមករា (Jan)</option>
+                                                <option value="2">ខែកុម្ភៈ (Feb)</option>
+                                                <option value="3">ខែមីនា (Mar)</option>
+                                                <option value="4">ខែមេសា (Apr)</option>
+                                                <option value="5">ខែឧសភា (May)</option>
+                                                <option value="6">ខែមិថុនា (Jun)</option>
+                                                <option value="7">ខែកក្កដា (Jul)</option>
+                                                <option value="8">ខែសីហា (Aug)</option>
+                                                <option value="9">ខែកញ្ញា (Sep)</option>
+                                                <option value="10">ខែតុលា (Oct)</option>
+                                                <option value="11" selected>ខែវិច្ឆិកា (Nov)</option>
+                                                <option value="12">ខែធ្នូ (Dec)</option>
+                                            </select>
+                                            <span class="input-group-text bg-light text-muted border-0 px-2 py-0" style="font-size: 0.8rem;">|</span>
+                                            <select class="form-select border-0 bg-white py-2 fw-bold text-dark ps-2 shadow-none" id="monthlyDueYearSelect" onchange="window.renderMonthlyDueSummary()" style="max-width: 125px;">
+                                                <option value="2024">ឆ្នាំ ២០២៤</option>
+                                                <option value="2025">ឆ្នាំ ២០២៥</option>
+                                                <option value="2026" selected>ឆ្នាំ ២០២៦</option>
+                                                <option value="2027">ឆ្នាំ ២០២៧</option>
+                                                <option value="2028">ឆ្នាំ ២០២៨</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-white border rounded-pill px-3 py-2 fw-bold text-primary shadow-sm hover-scale d-flex align-items-center gap-1.5" type="button" onclick="window.renderMonthlyDueSummary()" title="ផ្ទុកទិន្នន័យខែដែលបានជ្រើស">
+                                            <i class="fi fi-rr-refresh text-primary"></i>
+                                            <span class="d-none d-sm-inline small">ផ្ទុកទិន្នន័យ</span>
                                         </button>
                                     </div>
-                                    <div class="col-lg-5 col-md-12 col-sm-12">
-                                        <label class="form-label small fw-bold text-secondary mb-1">
-                                            <i class="fi fi-rr-search me-1 text-primary"></i> ស្វែងរកក្នុងតារាងខែនេះ (Search Student)
-                                        </label>
-                                        <div class="input-group shadow-sm rounded-3 overflow-hidden border">
-                                            <span class="input-group-text bg-white border-0 text-primary ps-3">
+
+                                    <!-- Right: Modern Pill Search Input with Clear & Search Buttons -->
+                                    <div class="flex-grow-1" style="max-width: 540px; min-width: 280px;">
+                                        <div class="input-group shadow-sm rounded-pill overflow-hidden border bg-white">
+                                            <span class="input-group-text bg-white border-0 text-muted ps-3">
                                                 <i class="fi fi-rr-search"></i>
                                             </span>
-                                            <input type="text" class="form-control border-0 py-2 bg-white" id="monthlyDueSearch"
-                                                placeholder="ស្វែងរកឈ្មោះ, អត្តលេខ, គ្រូ, ម៉ោងសិក្សា..."
+                                            <input type="text" class="form-control border-0 py-2 bg-white small" id="monthlyDueSearch"
+                                                placeholder="ស្វែងរកតាមឈ្មោះ, អត្តលេខ, គ្រូ, ម៉ោងសិក្សា..."
                                                 oninput="window.filterMonthlyDueTable()"
                                                 onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.filterMonthlyDueTable(); }">
                                             <button class="btn btn-white border-0 text-muted px-2" type="button" id="monthlyDueClearBtn"
@@ -730,6 +726,9 @@
                                         </div>
                                         <div class="fw-bold text-success fs-3" id="monthlyDuePaidAmount">$0.00</div>
                                         <div class="small text-success fw-semibold mt-1" id="monthlyDuePaidCount" style="font-size: 0.72rem;">0 នាក់ បានបង់រួច (0%)</div>
+                                        <div class="progress mt-2 rounded-pill bg-success bg-opacity-10" style="height: 5px;">
+                                            <div class="progress-bar bg-success rounded-pill" id="monthlyDuePaidProgress" role="progressbar" style="width: 0%; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- Card 4: Remaining Debt to Collect -->
@@ -742,7 +741,10 @@
                                             </div>
                                         </div>
                                         <div class="fw-bold text-danger fs-3" id="monthlyDueTotalAmount">$0.00</div>
-                                        <div class="small text-danger fw-semibold mt-1" id="monthlyDueDebtCount" style="font-size: 0.72rem;">នៅជំពាក់៖ 0 នាក់</div>
+                                        <div class="d-flex align-items-center justify-content-between mt-1">
+                                            <div class="small text-danger fw-semibold" id="monthlyDueDebtCount" style="font-size: 0.72rem;">នៅជំពាក់៖ 0 នាក់</div>
+                                            <span id="monthlyDueDebtBadge" class="badge rounded-pill px-2 py-0.5" style="font-size: 0.68rem;"></span>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- Card 5: Action Required (Today + Overdue) -->
@@ -765,14 +767,16 @@
                             <!-- Sub-filter & Options Bar -->
                             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                                    <div class="d-flex align-items-center gap-2 flex-wrap" id="monthlyDueSubFilters">
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap" id="monthlyDueSubFilters">
                                         <!-- Rendered dynamically by JavaScript -->
                                     </div>
-                                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
-                                        <input class="form-check-input" type="checkbox" id="monthlyDueIncludePastSwitch" onchange="window.toggleMonthlyDueIncludePast(this.checked)" style="cursor: pointer; width: 2.2em; height: 1.2em;">
-                                        <label class="form-check-label fw-bold small text-secondary" for="monthlyDueIncludePastSwitch" style="cursor: pointer;">
-                                            <i class="fi fi-rr-time-past text-danger me-1"></i> រួមបញ្ចូលសិស្សជំពាក់កន្លងមក (Include Past Debts)
-                                        </label>
+                                    <div class="px-3 py-1.5 bg-light rounded-pill border d-flex align-items-center gap-2">
+                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                                            <input class="form-check-input" type="checkbox" id="monthlyDueIncludePastSwitch" onchange="window.toggleMonthlyDueIncludePast(this.checked)" style="cursor: pointer; width: 2.2em; height: 1.2em;">
+                                            <label class="form-check-label fw-bold small text-secondary" for="monthlyDueIncludePastSwitch" style="cursor: pointer;">
+                                                <i class="fi fi-rr-time-past text-danger me-1"></i> រួមបញ្ចូលសិស្សជំពាក់កន្លងមក (Past Debts)
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

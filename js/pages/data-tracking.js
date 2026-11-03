@@ -17851,11 +17851,15 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
             const mNum = idx + 1;
             const isSelected = mNum === month;
             const count = data.monthCounts[idx] || 0;
+            const badgeClass = isSelected
+                ? 'bg-white text-primary fw-bold shadow-sm'
+                : (count > 0 ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'bg-light text-muted');
+
             return `
                 <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 text-nowrap monthly-due-pill-btn ${isSelected ? 'active-pill' : ''}" 
                     onclick="window.renderMonthlyDueSummary(${mNum}, ${year})" title="ចុចមើលខែ ${mName}">
                     <span>${mName}</span>
-                    <span class="badge ${isSelected ? 'bg-white text-primary' : (count > 0 ? 'bg-danger text-white' : 'bg-secondary bg-opacity-25 text-dark')} ms-1.5 rounded-pill">${count}</span>
+                    <span class="badge ${badgeClass} ms-1.5 rounded-pill">${count}</span>
                 </button>
             `;
         }).join('');
@@ -17865,35 +17869,36 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
     const subFiltersContainer = document.getElementById('monthlyDueSubFilters');
     if (subFiltersContainer) {
         const sf = window.CURRENT_MONTHLY_DUE_FILTER;
-        const btnClass = (name) => sf === name ? 'btn btn-sm rounded-pill px-3 py-1 fw-bold btn-primary shadow-sm' : 'btn btn-sm rounded-pill px-3 py-1 fw-bold btn-white border text-secondary';
-        const badgeClass = (name) => sf === name ? 'badge bg-white text-primary ms-1' : 'badge bg-secondary bg-opacity-25 text-dark ms-1';
+        const filterDefs = [
+            { key: 'all', icon: 'fi-rr-apps', label: 'ទាំងអស់ (All)', count: data.subCounts.all, color: 'primary' },
+            { key: 'today', icon: 'fi-rr-calendar-clock', label: 'ត្រូវបង់ថ្ងៃនេះ', count: data.subCounts.today, color: 'info' },
+            { key: 'overdue', icon: 'fi-rr-cross-circle', label: 'ហួសកំណត់', count: data.subCounts.overdue, color: 'danger' },
+            { key: 'warning', icon: 'fi-rr-time-forward', label: 'ជិតដល់ថ្ងៃ', count: data.subCounts.warning, color: 'warning' },
+            { key: 'debt', icon: 'fi-rr-exclamation', label: 'នៅជំពាក់', count: data.subCounts.debt, color: 'danger' },
+            { key: 'paid', icon: 'fi-rr-check', label: 'បង់រួចរាល់', count: data.subCounts.paid, color: 'success' },
+            { key: 'scheduled', icon: 'fi-rr-calendar', label: 'បង់ធម្មតា', count: data.subCounts.scheduled, color: 'secondary' },
+            { key: 'delay', icon: 'fi-rr-pause', label: 'ពន្យារពេល', count: data.subCounts.delay, color: 'secondary' }
+        ];
 
-        subFiltersContainer.innerHTML = `
-            <button type="button" class="${btnClass('all')}" onclick="window.setMonthlyDueSubFilter('all')">
-                ទាំងអស់ (All) <span class="${badgeClass('all')}">${data.subCounts.all}</span>
-            </button>
-            <button type="button" class="${btnClass('today')}" onclick="window.setMonthlyDueSubFilter('today')">
-                📅 ត្រូវបង់ថ្ងៃនេះ <span class="${sf === 'today' ? 'badge bg-white text-primary ms-1' : 'badge bg-info text-white ms-1'}">${data.subCounts.today}</span>
-            </button>
-            <button type="button" class="${btnClass('overdue')}" onclick="window.setMonthlyDueSubFilter('overdue')">
-                ❌ ហួសកំណត់ <span class="${sf === 'overdue' ? 'badge bg-white text-primary ms-1' : 'badge bg-danger text-white ms-1'}">${data.subCounts.overdue}</span>
-            </button>
-            <button type="button" class="${btnClass('warning')}" onclick="window.setMonthlyDueSubFilter('warning')">
-                ⏳ ជិតដល់ថ្ងៃ <span class="${sf === 'warning' ? 'badge bg-white text-primary ms-1' : 'badge bg-warning text-dark ms-1'}">${data.subCounts.warning}</span>
-            </button>
-            <button type="button" class="${btnClass('debt')}" onclick="window.setMonthlyDueSubFilter('debt')">
-                ⚠️ នៅជំពាក់ <span class="${sf === 'debt' ? 'badge bg-white text-primary ms-1' : 'badge bg-danger bg-opacity-75 text-white ms-1'}">${data.subCounts.debt}</span>
-            </button>
-            <button type="button" class="${btnClass('paid')}" onclick="window.setMonthlyDueSubFilter('paid')">
-                ✅ បង់រួចរាល់ <span class="${sf === 'paid' ? 'badge bg-white text-primary ms-1' : 'badge bg-success text-white ms-1'}">${data.subCounts.paid}</span>
-            </button>
-            <button type="button" class="${btnClass('scheduled')}" onclick="window.setMonthlyDueSubFilter('scheduled')">
-                📆 បង់ធម្មតា <span class="${badgeClass('scheduled')}">${data.subCounts.scheduled}</span>
-            </button>
-            <button type="button" class="${btnClass('delay')}" onclick="window.setMonthlyDueSubFilter('delay')">
-                ⏸️ ពន្យារពេល <span class="${badgeClass('delay')}">${data.subCounts.delay}</span>
-            </button>
-        `;
+        subFiltersContainer.innerHTML = filterDefs.map(f => {
+            const isActive = sf === f.key;
+            const hasCount = f.count > 0;
+            const btnCls = isActive
+                ? 'btn btn-sm rounded-pill px-3 py-1.5 fw-bold active-sub-filter'
+                : (hasCount ? 'btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-white border text-dark hover-scale' : 'btn btn-sm rounded-pill px-2.5 py-1.5 fw-normal btn-light text-muted border-0');
+
+            const badgeCls = isActive
+                ? 'badge bg-white text-primary rounded-pill ms-1'
+                : (hasCount ? `badge bg-${f.color} bg-opacity-15 text-${f.color} rounded-pill ms-1` : 'badge bg-transparent text-muted ms-1');
+
+            return `
+                <button type="button" class="${btnCls}" onclick="window.setMonthlyDueSubFilter('${f.key}')">
+                    ${f.icon ? `<i class="fi ${f.icon} me-1 ${isActive ? '' : 'text-' + f.color}"></i>` : ''}
+                    <span>${f.label}</span>
+                    <span class="${badgeCls}">${f.count}</span>
+                </button>
+            `;
+        }).join('');
     }
 
     // Sync switch state
@@ -17913,11 +17918,27 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
     const paidCountEl = document.getElementById('monthlyDuePaidCount');
     if (paidCountEl) paidCountEl.innerText = `${data.kpis.paidCount} នាក់ បានបង់រួច (${data.kpis.paidPercentage}%)`;
 
+    const paidProgressEl = document.getElementById('monthlyDuePaidProgress');
+    if (paidProgressEl) {
+        paidProgressEl.style.width = `${Math.min(100, Math.max(0, data.kpis.paidPercentage))}%`;
+    }
+
     const totalAmountEl = document.getElementById('monthlyDueTotalAmount');
     if (totalAmountEl) totalAmountEl.innerText = `$${data.kpis.totalDueAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const debtCountEl = document.getElementById('monthlyDueDebtCount');
     if (debtCountEl) debtCountEl.innerText = `នៅជំពាក់៖ ${data.kpis.debtCount} នាក់`;
+
+    const debtBadgeEl = document.getElementById('monthlyDueDebtBadge');
+    if (debtBadgeEl) {
+        if (data.kpis.debtCount === 0) {
+            debtBadgeEl.className = 'badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fw-bold';
+            debtBadgeEl.innerHTML = '<i class="fi fi-rr-check-circle me-1"></i>គ្មានបំណុល';
+        } else {
+            debtBadgeEl.className = 'badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1 fw-bold';
+            debtBadgeEl.innerHTML = `<i class="fi fi-rr-exclamation me-1"></i>${data.kpis.debtCount} នាក់`;
+        }
+    }
 
     const actionCountEl = document.getElementById('monthlyDueActionCount');
     if (actionCountEl) actionCountEl.innerText = `${data.kpis.todayCount + data.kpis.overdueCount} នាក់`;
@@ -17938,6 +17959,13 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
     if (overdueAmountEl) overdueAmountEl.innerText = `$${data.kpis.overdueAmount.toFixed(2)}`;
 
     const subChineseEl = document.getElementById('monthlyDueSubChinese');
+    if (subChineseEl) {
+        subChineseEl.innerHTML = `
+            <span class="badge bg-primary bg-opacity-10 text-primary border-0 rounded-pill me-1" style="font-size: 0.68rem;">ចិន: ${data.kpis.chineseFullCount}</span>
+            <span class="badge bg-warning bg-opacity-10 text-dark border-0 rounded-pill me-1" style="font-size: 0.68rem;">ក្រៅម៉ោង: ${data.kpis.partTimeCount}</span>
+            <span class="badge bg-info bg-opacity-10 text-info border-0 rounded-pill" style="font-size: 0.68rem;">ទូទៅ: ${data.kpis.trilingualCount}</span>
+        `;
+    }
     if (subChineseEl) subChineseEl.innerText = `ចិន: ${data.kpis.chineseFullCount} | ក្រៅម៉ោង: ${data.kpis.partTimeCount} | ទូទៅ: ${data.kpis.trilingualCount}`;
 
     // 4. Render Table Body & Foot

@@ -2305,16 +2305,25 @@
 /* ==========================================================================
    Modern Monthly Due Report Enhancements (100% Dynamic & Sleek Layout)
    ========================================================================== */
+.monthly-due-control-bar {
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    transition: all 0.25s ease;
+}
+
 .monthly-due-kpi-card {
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: 18px !important;
     position: relative;
     overflow: hidden;
+    background: #ffffff;
 }
 
 .monthly-due-kpi-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.1) !important;
 }
 
 .monthly-due-kpi-card::before {
@@ -2322,14 +2331,14 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
+    width: 4.5px;
     height: 100%;
     background-color: currentColor;
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 .monthly-due-pill-btn {
-    transition: all 0.2s ease-in-out;
+    transition: all 0.22s ease-in-out;
     border: 1px solid #e2e8f0;
     background: #ffffff;
     color: #334155;
@@ -2338,23 +2347,25 @@
 }
 
 .monthly-due-pill-btn:hover {
-    background: #f1f5f9;
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #0f172a;
-    transform: translateY(-1px);
+    transform: translateY(-1.5px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .monthly-due-pill-btn.active-pill {
     background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
     color: #ffffff !important;
     border-color: #1e3a8a !important;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
 }
 
 .monthly-due-table thead th {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
     color: #ffffff !important;
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     padding: 12px 8px;
     border: none;
     letter-spacing: 0.3px;
@@ -2365,7 +2376,7 @@
 }
 
 .monthly-due-table tbody tr:hover {
-    background-color: rgba(241, 245, 249, 0.7) !important;
+    background-color: rgba(241, 245, 249, 0.75) !important;
 }
 
 .text-purple {
@@ -2374,5 +2385,12 @@
 
 .bg-purple-subtle {
     background-color: rgba(124, 58, 237, 0.1) !important;
+}
+
+.active-sub-filter {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+    color: #ffffff !important;
+    border-color: #1e3a8a !important;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25) !important;
 }
 
