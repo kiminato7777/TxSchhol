@@ -14629,60 +14629,38 @@ window.CURRENT_UNIFIED_FILTER = 'all';
 window.getCleanStudentDebtRemark = function(s) {
     if (!s) return '-';
 
-    // 1. Explicit paid or finished enrollment status
+    // 1. Explicit paid or finished enrollment status or zero debt
     const pStatus = (s.paymentStatus || '').toLowerCase().trim();
     const enStatus = (s.enrollmentStatus || '').toLowerCase().trim();
-    if (pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidfull' || pStatus === 'paidoff' || pStatus === 'បង់រួច' || pStatus === 'បង់រួចរាល់' || enStatus === 'paidoff' || enStatus === 'graduated') {
-        return '-';
-    }
-
-    // 2. Total remaining balance <= 0.01
     const debt = typeof calculateRemainingAmount === 'function' ? calculateRemainingAmount(s) : 0;
-    if (debt <= 0.01) {
+    
+    const isPaid = debt <= 0.01 
+        || pStatus === 'paid' 
+        || pStatus === 'paid full' 
+        || pStatus === 'paidfull' 
+        || pStatus === 'paidoff' 
+        || pStatus === 'បង់រួច' 
+        || pStatus === 'បង់រួចរាល់' 
+        || enStatus === 'paidoff' 
+        || enStatus === 'graduated';
+
+    if (isPaid) {
         return '-';
     }
 
-    // 3. Status evaluated by getPaymentStatus is 'paid'
+    // 2. Check getPaymentStatus if officially 'paid'
     if (typeof getPaymentStatus === 'function') {
         const stObj = getPaymentStatus(s);
         if (stObj && stObj.status === 'paid') return '-';
     }
 
-    // 4. Current month context check (Monthly Due Context)
-    if (typeof window.getStudentMonthlyDueContext === 'function') {
-        const d = new Date();
-        const ctx = window.getStudentMonthlyDueContext(s, d.getMonth() + 1, d.getFullYear());
-        if (ctx && ctx.isPaid && (ctx.remainingDebt === undefined || ctx.remainingDebt <= 0.01)) {
-            return '-';
-        }
-    }
-
-    // 5. Installments check: if latest installment is fully paid and next payment date is in the future
-    if (s.installments) {
-        const instList = Array.isArray(s.installments) ? s.installments : Object.values(s.installments);
-        if (instList.length > 0) {
-            const lastInst = instList[instList.length - 1];
-            const isLastPaid = lastInst && (lastInst.paid === true || (parseFloat(lastInst.paidAmount) || 0) >= (parseFloat(lastInst.amount) || 0));
-            if (isLastPaid) {
-                const nextDateRaw = s.nextPaymentDate || s.paymentDueDate;
-                if (nextDateRaw && typeof getDateObject === 'function') {
-                    const nextObj = getDateObject(nextDateRaw);
-                    if (nextObj && !isNaN(nextObj.getTime())) {
-                        const today = new Date();
-                        today.setHours(12, 0, 0, 0);
-                        nextObj.setHours(12, 0, 0, 0);
-                        if (nextObj > today) {
-                            return '-';
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // 6. Filter out legacy automated system action logs dumped into s.remark
+    // 3. For any student who is in debt / pending / overdue / warning:
+    // THEIR ENTERED REMARK MUST BE PRESERVED AND DISPLAYED (ធ្វើឱ្យជាប់ក្នុងសម្គាល់)
     const r = (s.remark || '').trim();
-    if (!r || r === '-' || r.startsWith('[ប្តូរម៉ោង') || r.startsWith('[ផ្អាកការសិក្សា') || r.startsWith('[ឈប់រៀន')) {
+    if (!r || r === '-') return '-';
+
+    // Ignore legacy automated action logs
+    if (r.startsWith('[ប្តូរម៉ោង') || r.startsWith('[ផ្អាកការសិក្សា') || r.startsWith('[ឈប់រៀន')) {
         return '-';
     }
 
@@ -14745,25 +14723,37 @@ function renderUnifiedDebtList(students) {
     tbody.innerHTML = filtered.map((s, idx) => {
         const statusObj = getPaymentStatus(s);
         const debt = calculateRemainingAmount(s);
+        const pStatus = (s.paymentStatus || '').toLowerCase().trim();
+        const enStatus = (s.enrollmentStatus || '').toLowerCase().trim();
 
-        const cleanRemark = window.getCleanStudentDebtRemark(s);
-        const isStudentPaid = statusObj.status === 'paid' 
-            || debt <= 0.01 
-            || (s.paymentStatus || '').toLowerCase() === 'paid' 
-            || (s.paymentStatus || '').toLowerCase() === 'paid full' 
-            || (s.enrollmentStatus || '').toLowerCase() === 'paidoff'
-            || cleanRemark === '-';
+        // ឆែកមើលថាតើសិស្សបានបង់ប្រាក់រួចរាល់ហើយឬនៅ
+        const isStudentPaid = debt <= 0.01 
+            || statusObj.status === 'paid'
+            || pStatus === 'paid' 
+            || pStatus === 'paid full' 
+            || pStatus === 'paidfull' 
+            || pStatus === 'paidoff' 
+            || pStatus === 'បង់រួច' 
+            || pStatus === 'បង់រួចរាល់' 
+            || enStatus === 'paidoff' 
+            || enStatus === 'graduated'
+            || window.CURRENT_UNIFIED_FILTER === 'paid_off';
         
-        // ប្រសិនជាសិស្សបានបង់ប្រាក់រួច ឬគ្មានបំណុល ក្នុងសម្គាល់ ត្រូវ clear ចេញពី Firebase និង memory
-        if ((isStudentPaid || cleanRemark === '-') && s.remark) {
+        // ប្រសិនជាសិស្សបានបង់ប្រាក់រួច ក្នុងសម្គាល់ ត្រូវ clear ចេញពី Firebase និង Memory
+        if (isStudentPaid && s.remark) {
             s.remark = '';
             if (allStudentsData && allStudentsData[s.key]) allStudentsData[s.key].remark = '';
+            if (Array.isArray(window.rawStudentsArray)) {
+                const rawSt = window.rawStudentsArray.find(st => st && st.key === s.key);
+                if (rawSt) rawSt.remark = '';
+            }
             if (s.key && typeof studentsRef !== 'undefined') {
                 studentsRef.child(s.key).update({ remark: '' }).catch(() => {});
             }
         }
         
-        const displayRemark = (isStudentPaid || cleanRemark === '-') ? '-' : cleanRemark;
+        // បើបង់រួចបង្ហាញ '-' បើនៅជំពាក់ត្រូវបង្ហាញសម្គាល់ដែលបានបញ្ចូល (ធ្វើឱ្យជាប់ក្នុងសម្គាល់ 100%)
+        const displayRemark = isStudentPaid ? '-' : (window.getCleanStudentDebtRemark(s));
 
         // Define premium labels
         const badgeClasses = {
