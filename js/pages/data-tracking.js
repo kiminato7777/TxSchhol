@@ -12851,7 +12851,7 @@ margin: 0;
         if (countEl) countEl.innerText = `${data.records.length} នាក់`;
         if (amountEl) amountEl.innerText = `${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         if (detailEl) {
-            detailEl.innerText = `ត្រូវបង់ថ្ងៃនេះ: ${data.kpis.todayCount} នាក់ | ហួសកំណត់: ${data.kpis.overdueCount} នាក់ | ជិតដល់ថ្ងៃ: ${data.kpis.warningCount} នាក់`;
+            detailEl.innerText = `ត្រូវបង់ថ្ងៃនេះ: ${data.kpis.todayCount} នាក់ | ហួសកំណត់: ${data.kpis.overdueCount} នាក់ | ជិតដល់ថ្ងៃ: ${data.kpis.warningCount} នាក់ | បង់រួច: ${data.subCounts.paid} នាក់`;
         }
     };
 
@@ -17278,49 +17278,123 @@ window.CURRENT_MONTHLY_INCLUDE_PAST = false;
 window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) {
     if (!student) return null;
 
-    // Filter out dropouts, graduated, suspended, or fully paid off students
+    // Filter out only dropouts or suspended students (inactive at school)
     const enStatus = (student.enrollmentStatus || '').toLowerCase().trim();
     const pStatus = (student.paymentStatus || '').toLowerCase().trim();
-    if (enStatus === 'dropout' || enStatus === 'graduated' || enStatus === 'suspended' || enStatus === 'paidoff' || pStatus === 'paid full' || pStatus === 'paid') {
+    if (enStatus === 'dropout' || enStatus === 'suspended') {
         return null;
     }
 
     // Determine remaining debt with multiple fallbacks
-    let debt = calculateRemainingAmount(student);
+    let debt = (typeof calculateRemainingAmount === 'function') ? calculateRemainingAmount(student) : (parseFloat(student.balance) || 0);
     if (debt <= 0 && parseFloat(student.balance) > 0) debt = parseFloat(student.balance);
-    if (debt <= 0 && parseFloat(student.courseFee) > 0) debt = parseFloat(student.courseFee);
-    if (debt <= 0 && parseFloat(student.tuitionFee) > 0) debt = parseFloat(student.tuitionFee);
-    if (debt <= 0 && parseFloat(student.totalAmount) > 0) debt = parseFloat(student.totalAmount);
     if (debt < 0) debt = 0;
 
     // Check delay / postponement
     const isDelay = pStatus === 'delay' || pStatus === 'postponed' || pStatus === 'ពន្យា' || pStatus === 'ពន្យារពេល';
 
-    let rawDate = student.nextPaymentDate;
-    if (!rawDate || ['មិនមាន', 'n/a', '', 'undefined', 'null'].includes(String(rawDate).toLowerCase().trim())) {
-        rawDate = student.paymentDueDate;
-    }
-    if (isDelay && student.postponedDate && !['មិនមាន', 'n/a', ''].includes(String(student.postponedDate).toLowerCase().trim())) {
-        rawDate = student.postponedDate;
+    // 1. Gather all potential dates for the student to match targetMonth and targetYear
+    let matchedDateObj = null;
+    let matchedRawDate = '';
+    let isTargetMonth = false;
+    let isPastMonth = false;
+    let installmentMatched = null;
+
+    // Helper to test if a date matches targetMonth and targetYear
+    const checkDateMatch = (raw) => {
+        if (!raw || ['មិនមាន', 'n/a', '', 'undefined', 'null', 'completed', '01-01-100'].includes(String(raw).toLowerCase().trim())) {
+            return null;
+        }
+        const dObj = getDateObject(raw);
+        if (!dObj || isNaN(dObj.getTime())) return null;
+        const m = dObj.getMonth() + 1;
+        const y = dObj.getFullYear();
+        return { dObj, m, y, raw };
+    };
+
+    // A. Check primary nextPaymentDate
+    const nextMatch = checkDateMatch(student.nextPaymentDate);
+    // B. Check secondary paymentDueDate
+    const dueMatch = checkDateMatch(student.paymentDueDate);
+    // C. Check postponedDate
+    const postMatch = checkDateMatch(student.postponedDate);
+
+    // D. Check Installments
+    let instMatch = null;
+    if (student.installments) {
+        const instList = Array.isArray(student.installments) ? student.installments : Object.values(student.installments);
+        for (const inst of instList) {
+            const iDateMatch = checkDateMatch(inst.date || inst.paymentDate || inst.dueDate);
+            if (iDateMatch && iDateMatch.m === targetMonth && iDateMatch.y === targetYear) {
+                instMatch = { ...iDateMatch, inst };
+                break;
+            }
+            if (inst.forMonth && (parseInt(inst.forMonth) === targetMonth || String(inst.forMonth).includes(String(targetMonth)))) {
+                instMatch = { dObj: iDateMatch ? iDateMatch.dObj : new Date(targetYear, targetMonth - 1, 1, 12, 0, 0), m: targetMonth, y: targetYear, raw: inst.date || inst.forMonth, inst };
+                break;
+            }
+        }
     }
 
-    const dateObj = getDateObject(rawDate);
-    if (!dateObj) {
+    // E. Check startDate
+    const startMatch = checkDateMatch(student.startDate);
+
+    // Pick best matching date for targetMonth / targetYear
+    if (isDelay && postMatch && postMatch.m === targetMonth && postMatch.y === targetYear) {
+        matchedDateObj = postMatch.dObj;
+        matchedRawDate = postMatch.raw;
+        isTargetMonth = true;
+    } else if (nextMatch && nextMatch.m === targetMonth && nextMatch.y === targetYear) {
+        matchedDateObj = nextMatch.dObj;
+        matchedRawDate = nextMatch.raw;
+        isTargetMonth = true;
+    } else if (dueMatch && dueMatch.m === targetMonth && dueMatch.y === targetYear) {
+        matchedDateObj = dueMatch.dObj;
+        matchedRawDate = dueMatch.raw;
+        isTargetMonth = true;
+    } else if (postMatch && postMatch.m === targetMonth && postMatch.y === targetYear) {
+        matchedDateObj = postMatch.dObj;
+        matchedRawDate = postMatch.raw;
+        isTargetMonth = true;
+    } else if (instMatch) {
+        matchedDateObj = instMatch.dObj;
+        matchedRawDate = instMatch.raw;
+        installmentMatched = instMatch.inst;
+        isTargetMonth = true;
+    } else if (startMatch && startMatch.m === targetMonth && startMatch.y === targetYear) {
+        matchedDateObj = startMatch.dObj;
+        matchedRawDate = startMatch.raw;
+        isTargetMonth = true;
+    }
+
+    // If not matched directly in target month, check if past month (for includePast)
+    const primaryMatch = nextMatch || dueMatch || postMatch || startMatch;
+    if (!isTargetMonth && primaryMatch) {
+        if (primaryMatch.y < targetYear || (primaryMatch.y === targetYear && primaryMatch.m < targetMonth)) {
+            isPastMonth = true;
+            matchedDateObj = primaryMatch.dObj;
+            matchedRawDate = primaryMatch.raw;
+        }
+    }
+
+    if (!matchedDateObj) {
         return null;
     }
 
-    const dMonth = dateObj.getMonth() + 1;
-    const dYear = dateObj.getFullYear();
-
-    const isTargetMonth = (dMonth === targetMonth && dYear === targetYear);
-    const isPastMonth = (dYear < targetYear || (dYear === targetYear && dMonth < targetMonth));
+    const dMonth = matchedDateObj.getMonth() + 1;
+    const dYear = matchedDateObj.getFullYear();
 
     // Calculate days remaining from today (noon)
     const today = new Date();
     today.setHours(12, 0, 0, 0);
-    const targetD = new Date(dateObj);
+    const targetD = new Date(matchedDateObj);
     targetD.setHours(12, 0, 0, 0);
     const daysDiff = Math.round((targetD.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Check if student has paid
+    const isPaidStatus = pStatus === 'paid' || pStatus === 'paid full' || pStatus === 'paidoff' || enStatus === 'paidoff' || student.isPaid === true;
+    const isInstallmentPaid = installmentMatched && (installmentMatched.paid === true || (installmentMatched.paidAmount && installmentMatched.paidAmount >= installmentMatched.amount));
+    const isZeroDebtPaid = (debt <= 0 && ((typeof calculateTotalPaid === 'function' ? calculateTotalPaid(student) : 0) > 0 || isPaidStatus));
 
     // Determine status badge & label
     let status = 'scheduled';
@@ -17328,7 +17402,13 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
     let statusBadge = 'bg-info bg-opacity-25 text-dark border';
     let statusColor = '#0284c7';
 
-    if (isDelay) {
+    if (isPaidStatus || isInstallmentPaid || isZeroDebtPaid) {
+        status = 'paid';
+        statusText = '✅ បង់រួចរាល់';
+        statusBadge = 'bg-success text-white shadow-sm';
+        statusColor = '#16a34a';
+        debt = 0;
+    } else if (isDelay) {
         status = 'delay';
         statusText = '⏳ ពន្យារពេលបង់';
         statusBadge = 'bg-secondary bg-opacity-25 text-dark border';
@@ -17341,25 +17421,25 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
     } else if (daysDiff === 0) {
         status = 'today';
         statusText = '📅 ត្រូវបង់ថ្ងៃនេះ';
-        statusBadge = 'bg-primary text-white';
+        statusBadge = 'bg-primary text-white shadow-sm';
         statusColor = '#0d6efd';
     } else if (daysDiff < 0) {
         status = 'overdue';
         statusText = `❌ ហួសកំណត់ (${Math.abs(daysDiff)} ថ្ងៃ)`;
-        statusBadge = 'bg-danger text-white';
+        statusBadge = 'bg-danger text-white shadow-sm';
         statusColor = '#dc3545';
     } else if (daysDiff <= 10) {
         status = 'warning';
         statusText = `⏳ ជិតដល់ថ្ងៃ (${daysDiff} ថ្ងៃ)`;
-        statusBadge = 'bg-warning text-dark';
+        statusBadge = 'bg-warning text-dark shadow-sm';
         statusColor = '#d97706';
     }
 
     return {
         student,
         debt,
-        rawDate,
-        dateObj,
+        rawDate: matchedRawDate,
+        dateObj: matchedDateObj,
         daysDiff,
         dMonth,
         dYear,
@@ -17375,7 +17455,10 @@ window.getStudentMonthlyDueContext = function(student, targetMonth, targetYear) 
 
 // 2. Core: Extract students and KPI metrics for any month & year
 window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter = 'all', includePast = false) {
-    const allStudents = window.rawStudentsArray || [];
+    const allStudents = (window.rawStudentsArray && window.rawStudentsArray.length > 0)
+        ? window.rawStudentsArray
+        : Object.values(window.allStudentsData || allStudentsData || {});
+
     const currentD = new Date();
     const month = targetMonth ? parseInt(targetMonth) : (parseInt($('#monthlyDueMonthSelect').val()) || (currentD.getMonth() + 1));
     const year = targetYear ? parseInt(targetYear) : (parseInt($('#monthlyDueYearSelect').val()) || currentD.getFullYear());
@@ -17393,13 +17476,13 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
         // 12-Month Pills count for the selected year
         if (ctx.dYear === year && ctx.dMonth >= 1 && ctx.dMonth <= 12) {
             monthCounts[ctx.dMonth - 1]++;
-            monthAmounts[ctx.dMonth - 1] += ctx.debt;
+            monthAmounts[ctx.dMonth - 1] += (ctx.debt || 0);
         }
 
         // Check if student belongs to this month or past overdue
         if (ctx.isTargetMonth) {
             eligibleRecords.push(ctx);
-        } else if (includePast && ctx.isPastMonth) {
+        } else if (includePast && ctx.isPastMonth && ctx.debt > 0) {
             eligibleRecords.push(ctx);
         }
     });
@@ -17411,7 +17494,9 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
         overdue: eligibleRecords.filter(r => r.status === 'overdue' || r.status === 'past_overdue').length,
         warning: eligibleRecords.filter(r => r.status === 'warning').length,
         scheduled: eligibleRecords.filter(r => r.status === 'scheduled').length,
-        delay: eligibleRecords.filter(r => r.status === 'delay').length
+        delay: eligibleRecords.filter(r => r.status === 'delay').length,
+        paid: eligibleRecords.filter(r => r.status === 'paid').length,
+        debt: eligibleRecords.filter(r => r.debt > 0).length
     };
 
     // Filter by active sub-filter
@@ -17426,10 +17511,14 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
         filteredRecords = eligibleRecords.filter(r => r.status === 'scheduled');
     } else if (subFilter === 'delay') {
         filteredRecords = eligibleRecords.filter(r => r.status === 'delay');
+    } else if (subFilter === 'paid') {
+        filteredRecords = eligibleRecords.filter(r => r.status === 'paid');
+    } else if (subFilter === 'debt') {
+        filteredRecords = eligibleRecords.filter(r => r.debt > 0);
     }
 
-    // Sort: Overdue first, Today second, Warning third, Scheduled fourth, Delay last
-    const statusPriority = { overdue: 1, past_overdue: 1, today: 2, warning: 3, scheduled: 4, delay: 5 };
+    // Sort: Today first, Overdue second, Warning third, Scheduled fourth, Delay fifth, Paid sixth
+    const statusPriority = { today: 1, overdue: 2, past_overdue: 2, warning: 3, scheduled: 4, delay: 5, debt: 6, paid: 7 };
     filteredRecords.sort((a, b) => {
         const pA = statusPriority[a.status] || 99;
         const pB = statusPriority[b.status] || 99;
@@ -17444,14 +17533,16 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
     let totalDueAmount = 0;
     let todayAmount = 0;
     let overdueAmount = 0;
+    let warningAmount = 0;
     let chineseFullCount = 0;
     let partTimeCount = 0;
     let trilingualCount = 0;
 
     eligibleRecords.forEach(r => {
-        totalDueAmount += r.debt;
-        if (r.status === 'today') todayAmount += r.debt;
-        if (r.status === 'overdue' || r.status === 'past_overdue') overdueAmount += r.debt;
+        totalDueAmount += (r.debt || 0);
+        if (r.status === 'today') todayAmount += (r.debt || 0);
+        if (r.status === 'overdue' || r.status === 'past_overdue') overdueAmount += (r.debt || 0);
+        if (r.status === 'warning') warningAmount += (r.debt || 0);
 
         if (isStudentTrilingual(r.student)) trilingualCount++;
         else if (isStudentChineseFullTime(r.student)) chineseFullCount++;
@@ -17476,6 +17567,9 @@ window.getMonthlyDueStudentsData = function(targetMonth, targetYear, subFilter =
             overdueCount: subCounts.overdue,
             overdueAmount,
             warningCount: subCounts.warning,
+            warningAmount,
+            paidCount: subCounts.paid,
+            debtCount: subCounts.debt,
             chineseFullCount,
             partTimeCount,
             trilingualCount
@@ -17573,6 +17667,12 @@ window.renderMonthlyDueSummary = function(targetMonth, targetYear) {
             </button>
             <button type="button" class="${btnClass('warning')}" onclick="window.setMonthlyDueSubFilter('warning')">
                 ⏳ ជិតដល់ថ្ងៃ <span class="${sf === 'warning' ? 'badge bg-white text-primary ms-1' : 'badge bg-warning text-dark ms-1'}">${data.subCounts.warning}</span>
+            </button>
+            <button type="button" class="${btnClass('debt')}" onclick="window.setMonthlyDueSubFilter('debt')">
+                ⚠️ នៅជំពាក់ <span class="${sf === 'debt' ? 'badge bg-white text-primary ms-1' : 'badge bg-danger bg-opacity-75 text-white ms-1'}">${data.subCounts.debt}</span>
+            </button>
+            <button type="button" class="${btnClass('paid')}" onclick="window.setMonthlyDueSubFilter('paid')">
+                ✅ បង់រួចរាល់ <span class="${sf === 'paid' ? 'badge bg-white text-primary ms-1' : 'badge bg-success text-white ms-1'}">${data.subCounts.paid}</span>
             </button>
             <button type="button" class="${btnClass('scheduled')}" onclick="window.setMonthlyDueSubFilter('scheduled')">
                 📆 បង់ធម្មតា <span class="${badgeClass('scheduled')}">${data.subCounts.scheduled}</span>
