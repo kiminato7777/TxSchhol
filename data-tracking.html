@@ -59,29 +59,35 @@
         <!-- Main Student Tracking Section (Hidden when in Card Studio mode) -->
         <div id="trackingMainSection">
 
-        <!-- Top Main Header Bar (100% Match with Original Design) -->
+        <!-- Top Main Header Bar (Modern SaaS Clean Layout) -->
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pt-1">
             <!-- Left: Page Title & Icon -->
             <div class="d-flex align-items-center gap-3">
-                <div style="color: #8a0e5b; font-size: 2.3rem; line-height: 1;">
+                <div class="d-flex align-items-center justify-content-center rounded-4 shadow-sm" 
+                     style="width: 52px; height: 52px; background: linear-gradient(135deg, rgba(138, 14, 91, 0.1) 0%, rgba(199, 21, 133, 0.15) 100%); color: #8a0e5b; font-size: 1.6rem; border: 1px solid rgba(138, 14, 91, 0.15);">
                     <i class="fi fi-rr-users"></i>
                 </div>
-                <div class="moul-font" style="color: #8a0e5b; font-size: 1.35rem; line-height: 1.25;">
-                    បញ្ជីឈ្មោះ<br>សិស្ស
+                <div>
+                    <div class="moul-font" style="color: #8a0e5b; font-size: 1.35rem; line-height: 1.25; letter-spacing: 0.5px;">
+                        បញ្ជីឈ្មោះសិស្ស
+                    </div>
+                    <div class="small text-muted fw-semibold" style="font-size: 0.8rem; margin-top: 2px;">
+                        ប្រព័ន្ធគ្រប់គ្រង និងតាមដានព័ត៌មានសិស្ស (Student Management & Tracking)
+                    </div>
                 </div>
             </div>
 
             <!-- Right: Action Bar Pill Container -->
-            <div class="d-flex align-items-center gap-2 bg-white rounded-pill px-3 py-2 shadow-sm border flex-wrap">
+            <div class="action-pill-bar">
                 <!-- Theme Toggle (Moon / Sun) -->
-                <button type="button" class="btn btn-light rounded-circle theme-toggle-btn border d-flex align-items-center justify-content-center p-0 shadow-none" onclick="toggleTheme()" style="width: 38px; height: 38px;" title="ប្ដូរ Dark/Light Mode">
+                <button type="button" class="btn btn-light rounded-circle theme-toggle-btn border d-flex align-items-center justify-content-center p-0 shadow-none hover-scale" onclick="toggleTheme()" style="width: 36px; height: 36px;" title="ប្ដូរ Dark/Light Mode">
                     <i class="fi fi-rr-moon text-dark"></i>
                 </button>
 
                 <!-- របាយការណ៍ & នាំចេញ Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-light rounded-pill px-3 py-1 fw-bold text-primary border d-flex align-items-center gap-2 shadow-none dropdown-toggle" type="button" id="exportReportDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #f0f7ff; border-color: #b9d7ff !important; font-size: 0.9rem;">
-                        <i class="fi fi-rr-share text-primary"></i>
+                    <button class="btn rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-2 shadow-none dropdown-toggle hover-scale" type="button" id="exportReportDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.88rem;">
+                        <i class="fi fi-rr-share"></i>
                         <span>របាយការណ៍ & នាំចេញ</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" aria-labelledby="exportReportDropdown" style="min-width: 275px; z-index: 1060;">
@@ -103,29 +109,29 @@
                     </ul>
                 </div>
 
-                <!-- ស្ថានភាពបំណុល & ការបង់ប្រាក់ Button (Red) -->
-                <button type="button" class="btn btn-danger rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-2 shadow-none" onclick="toggleDebtSummary()" title="មើលស្ថានភាពបំណុល & ការបង់ប្រាក់" style="font-size: 0.9rem; background-color: #dc3545;">
+                <!-- ស្ថានភាពបំណុល & ការបង់ប្រាក់ Button (Ruby Red Modern Gradient) -->
+                <button type="button" class="btn rounded-pill px-3 py-1.5 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="toggleDebtSummary()" title="មើលស្ថានភាពបំណុល & ការបង់ប្រាក់" style="font-size: 0.88rem; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); border: none;">
                     <i class="fi fi-rr-exclamation"></i>
                     <span>ស្ថានភាពបំណុល & ការបង់ប្រាក់</span>
                 </button>
 
-                <!-- ត្រូវបង់ខែនេះ Button (Indigo Gradient) -->
-                <button type="button" class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-sm" onclick="window.switchToMonthlyDueTab()" title="មើលបញ្ជីសិស្សត្រូវបង់ក្នុងខែនេះ" style="font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <!-- ត្រូវបង់ខែនេះ Button (Indigo Modern Gradient) -->
+                <button type="button" class="btn rounded-pill px-3 py-1.5 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="window.switchToMonthlyDueTab()" title="មើលបញ្ជីសិស្សត្រូវបង់ក្នុងខែនេះ" style="font-size: 0.88rem; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none;">
                     <i class="fi fi-rr-calendar-clock"></i>
                     <span>ត្រូវបង់ខែនេះ</span>
-                    <span class="badge bg-white text-dark rounded-pill ms-1" id="topbarDueThisMonthBadge">...</span>
+                    <span class="badge bg-white rounded-pill ms-1 fw-bold" id="topbarDueThisMonthBadge" style="color: #4f46e5 !important; font-size: 0.75rem;">...</span>
                 </button>
 
-                <!-- ត្រូវបង់ថ្ងៃនេះ Button (Blue) -->
-                <button type="button" class="btn btn-primary rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-2 shadow-none" onclick="filterDueToday()" title="បង្ហាញសិស្សត្រូវបង់ថ្ងៃនេះ" style="font-size: 0.9rem; background-color: #0d6efd;">
+                <!-- ត្រូវបង់ថ្ងៃនេះ Button (Sky Blue Modern Gradient) -->
+                <button type="button" class="btn rounded-pill px-3 py-1.5 fw-bold text-white d-flex align-items-center gap-2 shadow-sm hover-scale" onclick="filterDueToday()" title="បង្ហាញសិស្សត្រូវបង់ថ្ងៃនេះ" style="font-size: 0.88rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
                     <i class="fi fi-rr-calendar-check"></i>
                     <span>ត្រូវបង់ថ្ងៃនេះ</span>
-                    <span class="badge bg-white text-primary rounded-pill ms-1" id="topbarDueTodayBadge">0</span>
+                    <span class="badge bg-white rounded-pill ms-1 fw-bold" id="topbarDueTodayBadge" style="color: #0284c7 !important; font-size: 0.75rem;">0</span>
                 </button>
 
-                <!-- ឯកសារ Dropdown (Teal) -->
+                <!-- ឯកសារ Dropdown (Teal Modern Soft) -->
                 <div class="dropdown">
-                    <button class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-none dropdown-toggle" type="button" id="docDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #0ea5e9; font-size: 0.9rem;">
+                    <button class="btn rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-2 shadow-none dropdown-toggle hover-scale" type="button" id="docDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #f0fdfa; color: #0d9488; border: 1px solid #99f6e4; font-size: 0.88rem;">
                         <i class="fi fi-rr-document"></i>
                         <span>ឯកសារ</span>
                     </button>
@@ -137,96 +143,157 @@
                     </ul>
                 </div>
 
-                <!-- ឈ្មោះជាន់គ្នា Button (Orange) -->
-                <button type="button" class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-none" onclick="checkDuplicateNames()" title="ពិនិត្យមើលឈ្មោះសិស្សជាន់គ្នា" style="background-color: #e67e22; font-size: 0.9rem;">
+                <!-- ឈ្មោះជាន់គ្នា Button (Amber Modern Soft) -->
+                <button type="button" class="btn rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-2 shadow-none hover-scale" onclick="checkDuplicateNames()" title="ពិនិត្យមើលឈ្មោះសិស្សជាន់គ្នា" style="background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 0.88rem;">
                     <i class="fi fi-rr-copy"></i>
                     <span>ឈ្មោះជាន់គ្នា</span>
                 </button>
 
-                <!-- គ្មានឈ្មោះចិន Button (Dark Red / Maroon) -->
-                <button type="button" class="btn rounded-pill px-3 py-1 fw-bold text-white d-flex align-items-center gap-2 shadow-none" onclick="checkMissingChineseNames()" title="ពិនិត្យមើលសិស្សដែលគ្មានឈ្មោះចិន" style="background-color: #961828; font-size: 0.9rem;">
+                <!-- គ្មានឈ្មោះចិន Button (Rose Modern Soft) -->
+                <button type="button" class="btn rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-2 shadow-none hover-scale" onclick="checkMissingChineseNames()" title="ពិនិត្យមើលសិស្សដែលគ្មានឈ្មោះចិន" style="background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; font-size: 0.88rem;">
                     <i class="fi fi-rr-id-badge"></i>
                     <span>គ្មានឈ្មោះចិន</span>
                 </button>
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="row g-4 mb-4">
+        <!-- Modern Statistics Cards Grid -->
+        <div class="row g-3 g-xl-4 mb-4">
+            <!-- 1. Chinese Full-Time -->
             <div class="col-xl col-md-4 col-sm-6">
-                <div
-                    class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-primary hover-lift">
-                    <div class="text-primary mb-2 opacity-75"><i class="fi fi-rr-book-alt fa-2x"></i></div>
-                    <div class="text-secondary small fw-bold text-uppercase mb-1">សិស្សចិនពេញម៉ោង</div>
-                    <div class="h3 mb-0 fw-bold text-dark" id="statChineseFullTime">0 នាក់</div>
-                    <div class="mt-2 text-muted fw-bold" style="font-size: 0.85rem;">
-                        ប្រុស: <span id="statChineseFullMale" class="text-primary">0</span> | 
-                        ស្រី: <span id="statChineseFullFemale" class="text-danger">0</span>
+                <div class="stat-card-modern stat-card-accent-blue hover-lift">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold text-uppercase">សិស្សចិនពេញម៉ោង</span>
+                        <div class="stat-icon-badge" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">
+                            <i class="fi fi-rr-book-alt"></i>
+                        </div>
+                    </div>
+                    <div class="h2 mb-1 fw-bolder text-dark" id="statChineseFullTime">0 នាក់</div>
+                    <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+                        <span class="badge rounded-pill px-2.5 py-1 text-primary bg-primary bg-opacity-10 fw-bold small">
+                            ប្រុស: <span id="statChineseFullMale">0</span>
+                        </span>
+                        <span class="badge rounded-pill px-2.5 py-1 text-danger bg-danger bg-opacity-10 fw-bold small">
+                            ស្រី: <span id="statChineseFullFemale">0</span>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- 2. Part-Time Total -->
             <div class="col-xl col-md-4 col-sm-6">
-                <div
-                    class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-warning hover-lift">
-                    <div class="text-warning mb-2 opacity-75"><i class="fi fi-rr-briefcase fa-2x"></i></div>
-                    <div class="text-secondary small fw-bold text-uppercase mb-1">សិស្សក្រៅម៉ោង (សរុប)</div>
-                    <div class="h3 mb-0 fw-bold text-dark" id="statPartTimeTotal">0 នាក់</div>
-                    <div class="mt-2 text-muted fw-bold" style="font-size: 0.85rem;">
-                        ប្រុស: <span id="statPartTimeMale" class="text-primary">0</span> | 
-                        ស្រី: <span id="statPartTimeFemale" class="text-danger">0</span>
+                <div class="stat-card-modern stat-card-accent-amber hover-lift">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold text-uppercase">សិស្សក្រៅម៉ោង (សរុប)</span>
+                        <div class="stat-icon-badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">
+                            <i class="fi fi-rr-briefcase"></i>
+                        </div>
+                    </div>
+                    <div class="h2 mb-1 fw-bolder text-dark" id="statPartTimeTotal">0 នាក់</div>
+                    <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+                        <span class="badge rounded-pill px-2.5 py-1 text-primary bg-primary bg-opacity-10 fw-bold small">
+                            ប្រុស: <span id="statPartTimeMale">0</span>
+                        </span>
+                        <span class="badge rounded-pill px-2.5 py-1 text-danger bg-danger bg-opacity-10 fw-bold small">
+                            ស្រី: <span id="statPartTimeFemale">0</span>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- 3. General Knowledge / Trilingual -->
             <div class="col-xl col-md-4 col-sm-6">
-                <div
-                    class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-info hover-lift">
-                    <div class="text-info mb-2 opacity-75"><i class="fi fi-rr-child fa-2x"></i></div>
-                    <div class="text-secondary small fw-bold text-uppercase mb-1">ថ្នាក់ចំណេះដឹងទូទៅ</div>
-                    <div class="h3 mb-0 fw-bold text-dark" id="statPreschool3Lang">0 នាក់</div>
-                    <div class="mt-2 text-muted fw-bold" style="font-size: 0.85rem;">
-                        ប្រុស: <span id="statPre3LangMale" class="text-primary">0</span> | 
-                        ស្រី: <span id="statPre3LangFemale" class="text-danger">0</span>
+                <div class="stat-card-modern stat-card-accent-cyan hover-lift">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold text-uppercase">ថ្នាក់ចំណេះដឹងទូទៅ</span>
+                        <div class="stat-icon-badge" style="background: rgba(6, 182, 212, 0.1); color: #0891b2;">
+                            <i class="fi fi-rr-child"></i>
+                        </div>
+                    </div>
+                    <div class="h2 mb-1 fw-bolder text-dark" id="statPreschool3Lang">0 នាក់</div>
+                    <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+                        <span class="badge rounded-pill px-2.5 py-1 text-primary bg-primary bg-opacity-10 fw-bold small">
+                            ប្រុស: <span id="statPre3LangMale">0</span>
+                        </span>
+                        <span class="badge rounded-pill px-2.5 py-1 text-danger bg-danger bg-opacity-10 fw-bold small">
+                            ស្រី: <span id="statPre3LangFemale">0</span>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- 4. Total Active Students -->
             <div class="col-xl col-md-6 col-sm-6">
-                <div
-                    class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-bottom border-4 border-success hover-lift">
-                    <div class="text-success mb-2 opacity-75"><i class="fi fi-rr-users fa-2x"></i></div>
-                    <div class="text-secondary small fw-bold text-uppercase mb-1">សិស្សសរុប (ACTIVE)</div>
-                    <div class="h3 mb-0 fw-bold text-dark" id="statTotalStudents">0 នាក់</div>
-                    <div class="mt-2 text-muted fw-bold" style="font-size: 0.85rem;">
-                        ប្រុស: <span id="statActiveMale" class="text-primary">0</span> | 
-                        ស្រី: <span id="statActiveFemale" class="text-danger">0</span>
+                <div class="stat-card-modern stat-card-accent-emerald hover-lift">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-bold text-uppercase">សិស្សសរុប (ACTIVE)</span>
+                        <div class="stat-icon-badge" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
+                            <i class="fi fi-rr-users"></i>
+                        </div>
+                    </div>
+                    <div class="h2 mb-1 fw-bolder text-dark" id="statTotalStudents">0 នាក់</div>
+                    <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+                        <span class="badge rounded-pill px-2.5 py-1 text-primary bg-primary bg-opacity-10 fw-bold small">
+                            ប្រុស: <span id="statActiveMale">0</span>
+                        </span>
+                        <span class="badge rounded-pill px-2.5 py-1 text-danger bg-danger bg-opacity-10 fw-bold small">
+                            ស្រី: <span id="statActiveFemale">0</span>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- 5. Total Debt (Interactive Ruby Card) -->
             <div class="col-xl col-md-6 col-sm-12">
-                <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-danger bg-opacity-10 h-100 border-bottom border-4 border-danger hover-lift"
-                    style="cursor: pointer;" onclick="toggleDebtSummary()">
-                    <div class="text-danger mb-2 opacity-75"><i class="fi fi-rr-money-bill-wave fa-2x"></i></div>
-                    <div class="text-danger small fw-bold text-uppercase mb-1">សរុបបំណុល (TOTAL DEBT)</div>
-                    <div class="h3 mb-0 fw-bold text-danger" id="statTotalDebt">$0.00</div>
+                <div class="stat-card-modern stat-card-accent-rose hover-lift" 
+                     style="cursor: pointer; background: linear-gradient(145deg, #fff5f7 0%, #ffe4e9 100%); border: 1px solid rgba(225, 29, 72, 0.25) !important;" 
+                     onclick="toggleDebtSummary()" title="ចុចដើម្បីបើកផ្ទាំងសរុបបំណុល & ស្ថានភាពបង់ប្រាក់">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-danger small fw-bold text-uppercase">សរុបបំណុល (TOTAL DEBT)</span>
+                        <div class="stat-icon-badge" style="background: rgba(225, 29, 72, 0.12); color: #e11d48;">
+                            <i class="fi fi-rr-money-bill-wave"></i>
+                        </div>
+                    </div>
+                    <div class="h2 mb-1 fw-bolder text-danger" id="statTotalDebt">$0.00</div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                        <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 small fw-bold shadow-none">
+                            <i class="fi fi-rr-eye me-1"></i>ចុចមើលបំណុល
+                        </span>
+                        <span class="text-muted small fw-semibold" style="font-size: 0.78rem;">Debt Summary</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Decorative Pink Accent Line -->
-        <div class="w-100 my-4" style="height: 3px; background: linear-gradient(90deg, #e83e8c, #d63384); border-radius: 2px;"></div>
+        <!-- Modern Search & Filter Card Section -->
+        <div class="search-filter-section mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 text-primary" style="width: 32px; height: 32px;">
+                        <i class="fi fi-rr-filter"></i>
+                    </div>
+                    <span class="fw-bold text-dark moul-font" style="font-size: 0.95rem;">ចម្រាញ់ និងស្វែងរកទិន្នន័យ (Search & Filter)</span>
+                </div>
+                <div class="small text-muted fw-semibold">
+                    ច្រោះទិន្នន័យតាមឈ្មោះ ស្ថានភាព ម៉ោងសិក្សា ឬគ្រូបន្ទុក
+                </div>
+            </div>
 
-        <div class="search-filter-section mb-5">
-            <div class="row g-4 d-flex align-items-end">
-                <div class="col-lg-2">
-                    <label class="form-label small fw-bold text-secondary">ស្វែងរកសិស្ស (Search Student)</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0"><i class="fi fi-rr-search"></i></span>
-                        <input type="text" class="form-control-saas form-control border-0 bg-light" id="searchName"
-                            placeholder="ឈ្មោះ, ID, ឬលេខទូរស័ព្ទ...">
+            <div class="row g-3 d-flex align-items-end">
+                <!-- Search Input -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label small fw-bold text-secondary mb-1">ស្វែងរកសិស្ស (Search Student)</label>
+                    <div class="input-group bg-light rounded-pill border px-2 py-1 shadow-none">
+                        <span class="input-group-text bg-transparent border-0 text-muted ps-1"><i class="fi fi-rr-search"></i></span>
+                        <input type="text" class="form-control border-0 bg-transparent py-1 fw-semibold" id="searchName"
+                            placeholder="ឈ្មោះ, ID, ឬលេខទូរស័ព្ទ..." style="font-size: 0.9rem;">
                     </div>
                 </div>
-                <div class="col-lg-2">
-                    <label class="form-label small fw-bold text-secondary">ស្ថានភាព (Status)</label>
-                    <select class="form-select border-0 bg-light rounded-3 py-2" id="filterStatus">
+
+                <!-- Status Filter -->
+                <div class="col-lg-2 col-md-6 col-sm-6">
+                    <label class="form-label small fw-bold text-secondary mb-1">ស្ថានភាព (Status)</label>
+                    <select class="form-select border bg-light rounded-pill py-2 px-3 fw-bold small text-secondary shadow-none" id="filterStatus">
                         <option value="all">ទាំងអស់</option>
                         <option value="paid">បង់រួច</option>
                         <option value="overdue">ហួសកំណត់</option>
@@ -234,32 +301,40 @@
                         <option value="today">ត្រូវបង់ថ្ងៃនេះ</option>
                     </select>
                 </div>
-                <div class="col-lg-2">
-                    <label class="form-label small fw-bold text-secondary">ម៉ោងសិក្សា (Time)</label>
-                    <select class="form-select border-0 bg-light rounded-3 py-2" id="filterTime">
+
+                <!-- Time Filter -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <label class="form-label small fw-bold text-secondary mb-1">ម៉ោងសិក្សា (Time)</label>
+                    <select class="form-select border bg-light rounded-pill py-2 px-3 fw-bold small text-secondary shadow-none" id="filterTime">
                         <option value="all">ទាំងអស់</option>
                     </select>
                 </div>
-                <div class="col-lg-2">
-                    <label class="form-label small fw-bold text-secondary">កម្រិត (Level)</label>
-                    <select class="form-select border-0 bg-light rounded-3 py-2" id="filterLevel">
+
+                <!-- Level Filter -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <label class="form-label small fw-bold text-secondary mb-1">កម្រិត (Level)</label>
+                    <select class="form-select border bg-light rounded-pill py-2 px-3 fw-bold small text-secondary shadow-none" id="filterLevel">
                         <option value="all">ទាំងអស់</option>
                     </select>
                 </div>
-                <div class="col-lg-2">
-                    <label class="form-label small fw-bold text-secondary">គ្រូបន្ទុកថ្នាក់ (Teacher)</label>
-                    <select class="form-select border-0 bg-light rounded-3 py-2" id="filterClassTeacher">
+
+                <!-- Teacher Filter -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <label class="form-label small fw-bold text-secondary mb-1">គ្រូបន្ទុកថ្នាក់ (Teacher)</label>
+                    <select class="form-select border bg-light rounded-pill py-2 px-3 fw-bold small text-secondary shadow-none" id="filterClassTeacher">
                         <option value="all">ទាំងអស់</option>
                     </select>
                 </div>
-                <div class="col-lg-2 mb-1">
+
+                <!-- Action Buttons -->
+                <div class="col-lg-1 col-md-12">
                     <div class="d-flex gap-2">
-                        <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="refreshData()"
-                            title="ធ្វើបច្ចុប្បន្នភាព">
+                        <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm hover-scale d-flex align-items-center justify-content-center" onclick="refreshData()"
+                            title="ធ្វើបច្ចុប្បន្នភាពទិន្នន័យ (Refresh)" style="background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);">
                             <i class="fi fi-rr-refresh"></i>
                         </button>
-                        <button class="btn btn-light w-100 rounded-pill py-2 fw-bold border" id="clearFiltersBtn"
-                            title="សម្អាតការស្វែងរក">
+                        <button class="btn btn-light w-100 rounded-pill py-2 fw-bold border text-secondary shadow-sm hover-scale d-flex align-items-center justify-content-center" id="clearFiltersBtn"
+                            title="សម្អាតការស្វែងរក (Clear Filters)">
                             <i class="fi fi-rr-filter-slash"></i>
                         </button>
                     </div>
@@ -1292,13 +1367,13 @@
                 <div class="modal-footer border-0 bg-white p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <button type="button" class="btn btn-light rounded-pill px-3 fw-bold" data-bs-dismiss="modal">បិទ</button>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="const m = $('#dueMonthSelect').val(); const y = $('#dueYearSelect').val(); bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab(m, y);">
+                        <button type="button" class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('monthlyDueModal'))?.hide(); window.switchToMonthlyDueTab($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
                             <i class="fi fi-rr-table me-1"></i>មើលក្នុងតារាង (View Table)
                         </button>
-                        <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-bold shadow-sm" onclick="const m = $('#dueMonthSelect').val(); const y = $('#dueYearSelect').val(); window.exportMonthlyDueExcel(m, y);">
+                        <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-bold shadow-sm" onclick="window.exportMonthlyDueExcel($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
                             <i class="fi fi-rr-file-excel me-1"></i>Excel
                         </button>
-                        <button type="button" class="btn rounded-pill px-4 text-white fw-bold shadow-sm" style="background-color: #8a0e5b;" onclick="const m = $('#dueMonthSelect').val(); const y = $('#dueYearSelect').val(); window.generateMonthlyDuePDF(m, y);">
+                        <button type="button" class="btn rounded-pill px-4 text-white fw-bold shadow-sm" style="background-color: #8a0e5b;" onclick="window.generateMonthlyDuePDF($('#dueMonthSelect').val(), $('#dueYearSelect').val());">
                             <i class="fi fi-rr-file-pdf me-2"></i>ទាញយក PDF
                         </button>
                     </div>
