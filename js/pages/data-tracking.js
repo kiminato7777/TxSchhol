@@ -1094,6 +1094,11 @@ async function syncStudentFinancials(key) {
         updatedAt: new Date().toISOString()
     };
 
+    if (balance <= 0.01 && paid > 0) {
+        updates.remark = '';
+        s.remark = '';
+    }
+
     // Update local data
     Object.assign(s, updates);
 
@@ -9161,8 +9166,10 @@ function markAsPaid(key) {
     const updateData = {
         paymentStatus: 'Paid',
         nextPaymentDate: nextDate,
+        remark: '',
         updatedAt: new Date().toISOString()
     };
+    if (s) s.remark = '';
 
     // Optimistic Update
     if (allStudentsData[key]) {
@@ -14194,6 +14201,8 @@ window.showQuickFinancialSummary = () => {
             const status = getPaymentStatus(s);
             const paid = calculateTotalPaid(s);
             const outstanding = calculateRemainingAmount(s);
+            const isStudentPaid = status.status === 'paid' || outstanding <= 0.01;
+            const displayRemark = isStudentPaid ? '-' : (s.remark || '-');
 
             html += `
                 <tr class="text-center">
@@ -14211,7 +14220,7 @@ window.showQuickFinancialSummary = () => {
     ${status.text}
 </span>
                     </td>
-                    <td class="text-start small text-muted px-2">${s.remark || '-'}</td>
+                    <td class="text-start small text-muted px-2">${displayRemark}</td>
                 </tr>`;
         });
 
@@ -14530,6 +14539,18 @@ function renderUnifiedDebtList(students) {
         const statusObj = getPaymentStatus(s);
         const debt = calculateRemainingAmount(s);
 
+        const isStudentPaid = statusObj.status === 'paid' || debt <= 0.01 || (s.paymentStatus || '').toLowerCase() === 'paid' || (s.paymentStatus || '').toLowerCase() === 'paid full' || (s.enrollmentStatus || '').toLowerCase() === 'paidoff';
+        
+        // ប្រសិនជាសិស្សបានបង់ប្រាក់រួច ក្នុងសម្គាល់ ត្រូវ clear ចេញ
+        if (isStudentPaid && s.remark) {
+            s.remark = '';
+            if (s.key && typeof studentsRef !== 'undefined') {
+                studentsRef.child(s.key).update({ remark: '' }).catch(() => {});
+            }
+        }
+        
+        const displayRemark = isStudentPaid ? '-' : (s.remark || '-');
+
         // Define premium labels
         const badgeClasses = {
             'today': 'bg-primary text-white',
@@ -14594,11 +14615,11 @@ ${statusObj.text}
                     <span class="amount-text">$${debt.toFixed(2)}</span>
                 </td>
                 <td class="text-start px-3">
-                    <div class="remark-pill shadow-sm" 
- onclick="updateDebtRemark('${s.key}', \`${(s.remark || '').replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)"
- title="ចុចដើម្បីកែសម្រួលសម្គាល់">
+                    <div class="remark-pill shadow-sm ${isStudentPaid ? 'opacity-50' : ''}" 
+ onclick="updateDebtRemark('${s.key}', \`${(displayRemark === '-' ? '' : (s.remark || '')).replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)"
+ title="${isStudentPaid ? 'សិស្សបានបង់ប្រាក់រួច' : 'ចុចដើម្បីកែសម្រួលសម្គាល់'}">
 <div class="d-flex align-items-center justify-content-between">
-    <span class="small text-muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.remark || '-'}</span>
+    <span class="small text-muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayRemark}</span>
     <i class="fi fi-rr-edit-alt ms-2 opacity-50 remark-edit-icon" style="font-size: 0.75rem;"></i>
 </div>
                     </div>
@@ -15262,17 +15283,21 @@ window.exportCurrentDetailedListPDF = () => {
     doc.setFontSize(9);
     doc.text(`កាលបរិច្ឆេទ៖ ${new Date().toLocaleString('en-GB')}`, 15, 30);
 
-    const body = filtered.map((s, idx) => [
-        idx + 1,
-        s.displayId || '-',
-        `${s.lastName || ''} ${s.firstName || ''}`,
-        s.teacherName || 'N/A',
-        isStudentTrilingual(s) ? 'ចំណះដឹងទូទៅ' : (isStudentChineseFullTime(s) ? 'ចិនពេញម៉ោង' : 'ក្រៅម៉ោង'),
-        getPaymentStatus(s).text,
-        s.nextPaymentDate || '-',
-        `$${calculateRemainingAmount(s).toFixed(2)}`,
-        s.remark || '-'
-    ]);
+    const body = filtered.map((s, idx) => {
+        const isPaid = getPaymentStatus(s).status === 'paid' || calculateRemainingAmount(s) <= 0.01;
+        const displayRemark = isPaid ? '-' : (s.remark || '-');
+        return [
+            idx + 1,
+            s.displayId || '-',
+            `${s.lastName || ''} ${s.firstName || ''}`,
+            s.teacherName || 'N/A',
+            isStudentTrilingual(s) ? 'ចំណះដឹងទូទៅ' : (isStudentChineseFullTime(s) ? 'ចិនពេញម៉ោង' : 'ក្រៅម៉ោង'),
+            getPaymentStatus(s).text,
+            s.nextPaymentDate || '-',
+            `$${calculateRemainingAmount(s).toFixed(2)}`,
+            displayRemark
+        ];
+    });
 
     doc.autoTable({
         head: [['#', 'អត្តលេខ', 'ឈ្មោះសិស្ស', 'គ្រូបន្ទុក', 'ផ្នែក', 'ស្ថានភាព', 'ថ្ងៃបង់', 'ជំពាក់', 'សម្គាល់']],
@@ -15865,8 +15890,10 @@ window.markAsPaidOff = (key) => {
             const updates = {
                 enrollmentStatus: 'paidOff',
                 paidOffDate: new Date().toISOString().split('T')[0],
+                remark: '',
                 lastUpdated: new Date().toISOString()
             };
+            if (s) s.remark = '';
             studentsRef.child(key).update(updates).then(() => {
                 showLoading(false);
                 Swal.fire({
