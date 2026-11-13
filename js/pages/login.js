@@ -87,7 +87,7 @@ if (loginForm) {
                 lastLogin: new Date().toISOString()
             };
             firebase.database().ref('users/' + uid).set(newUserData).catch(() => {}).finally(() => {
-                window.location.href = "/index.html";
+                window.location.href = "/";
             });
           } else {
             // User exists -> Update Last Login & Email & Redirect
@@ -106,7 +106,7 @@ if (loginForm) {
               }
             }
             firebase.database().ref('users/' + uid).update(updates).catch(() => {}).finally(() => {
-                window.location.href = "/index.html";
+                window.location.href = "/";
             });
           }
         });
@@ -157,7 +157,7 @@ function showCustomAlert(message, duration = 3000) {
 // Check auth state
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
-    // window.location.href = "index.html";
+    window.location.href = "/";
   }
 });
 

@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Determine if we are on the login page
-    const isLoginPage = window.location.pathname.endsWith("/login.html") || window.location.pathname.endsWith("/login") || window.location.pathname === "/";
+    const cleanPath = (window.location.pathname || '').toLowerCase();
+    const isLoginPage = cleanPath.endsWith("/login.html") || cleanPath.endsWith("/login") || cleanPath.endsWith("/login/");
 
     // Check for local file execution
     if (window.location.protocol === 'file:') {
@@ -34,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (user) {
             if (isLoginPage) {
                 console.log("Logged in user found on login page. Redirecting to dashboard...");
-                window.location.href = "/index.html";
+                window.location.href = "/";
                 return;
             }
 
@@ -213,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const subpageKey = getSubpageKey(currentPage);
                 if (subpageKey) {
                     if (!p[subpageKey]) {
-                        window.location.href = "/index.html";
+                        window.location.href = "/";
                     }
                     return;
                 }
@@ -223,8 +224,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     const fallback = modules.find(m => p[m.key]);
                     if (fallback && fallback.href !== currentPage && ('/' + fallback.href) !== path) {
                         window.location.href = fallback.href;
-                    } else if (currentPage !== 'index.html') {
-                        window.location.href = "/index.html";
+                    } else if (currentPage !== 'index.html' && path !== '/') {
+                        window.location.href = "/";
                     }
                 }
             };
